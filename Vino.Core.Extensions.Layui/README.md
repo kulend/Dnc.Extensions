@@ -8,7 +8,7 @@
     <p>[2017.08.28] 版本 2.0.2.0</p>
 
 * 安装方法
-PM> Install-Package Vino.Core.Extensions.Layui -Version 2.0.2
+> PM> Install-Package Vino.Core.Extensions.Layui -Version 2.0.2
 > dotnet add package Vino.Core.Extensions.Layui --version 2.0.2
 
 * 使用方法
@@ -117,17 +117,20 @@ PM> Install-Package Vino.Core.Extensions.Layui -Version 2.0.2
 
 * 其他说明
     1. 设定字段类型是int或short，这input标签会添加input-length-num样式css，如果是字符串字段，设定MaxLengthAttribute，长度>=50，添加样式"input-length-long",如果长度20~50，添加样式"input-length-middle"，如果长度小于20，则添加样式"input-length-short"。用户可在css文件中自定义文本框宽度。
+
     2. bool型字段默认会渲染成switch，lay-text需要这样设置：
     ```c#
         [Display(Name = "是否显示", Prompt = "是|否")]
     ```
+
     3. 除了字段类型，很多时候需要DataTypeAttribute来判断输入类型，默认为text，还可设置hidden，password，multilinetext，textarea，datetime，date，year，month，time等。multilinetext和textarea会渲染成Textarea。
 
+
     4. 关于FormActions按钮相关，
-        1). @Html.LayuiFormActionsForSubmit(), 添加保存按钮。
-        2). @Html.LayuiFormActionsForSubmitAndClose(), 添加保存和关闭按钮。
-        3). @Html.LayuiFormActionsForSubmitAndReset(), 添加保存和重置按钮。
-        4). @Html.LayuiFormActions(btns), 添加自定义按钮，例如：
+        <br/> 1). @Html.LayuiFormActionsForSubmit(), 添加保存按钮。
+        <br/> 2). @Html.LayuiFormActionsForSubmitAndClose(), 添加保存和关闭按钮。
+        <br/> 3). @Html.LayuiFormActionsForSubmitAndReset(), 添加保存和重置按钮。
+        <br/> 4). @Html.LayuiFormActions(btns), 添加自定义按钮，例如：
     ```c#
         @Html.LayuiFormActions(
            new LayuiSubmitActionButton(),
@@ -136,15 +139,37 @@ PM> Install-Package Vino.Core.Extensions.Layui -Version 2.0.2
            new LayuiActionButton { Id = "btn_aaa", Text = "自定义按钮", Css = "my-btn", OnClick = "alert(1);" }
         )
     ``` 
+
     5. 修改全局默认配置
     ```c#
-            //使用Layui
-            services.AddLayui(opt => {
-                opt.SubmitButtonText = "保 存"; //默认提交按钮文字
-                opt.CloseButtonOnClick = "关 闭";//默认关闭按钮文字
-                opt.ResetButtonText = "重 置";//默认重置表单按钮文字
-                opt.CloseButtonOnClick = "closeWindow()";//默认关闭按钮OnClick事件
-            });
+        //使用Layui
+        services.AddLayui(opt => {
+            opt.SubmitButtonText = "保 存"; //默认提交按钮文字
+            opt.CloseButtonOnClick = "关 闭";//默认关闭按钮文字
+            opt.ResetButtonText = "重 置";//默认重置表单按钮文字
+            opt.CloseButtonOnClick = "closeWindow()";//默认关闭按钮OnClick事件
+        });
     ```
+
+    6. 关于laydate组件，需要在页面添加以下js脚本：
+    ```c#
+    layui.use(['laydate'], function () {
+        var $ = layui.jquery
+        , laydate = layui.laydate;
+
+        $(".layui-input.laydate").each(function () {
+            var self = $(this);
+            var type = self.data("type") || 'date';
+            var format = self.data("format") || 'yyyy-MM-dd';
+            laydate.render({
+                elem: self[0],
+                type: type,
+                format: format
+            });
+        });
+    });
+    ```
+
+
 * 如有bug或其他建议，可以提交issue。也可邮件给我：kulend@qq.com
 
