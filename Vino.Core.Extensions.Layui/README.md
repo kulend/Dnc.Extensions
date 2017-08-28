@@ -8,14 +8,14 @@
     <p>[2017.08.28] 版本 2.0.2.0</p>
 
 * 安装方法
-> PM> Install-Package Vino.Core.Extensions.Layui -Version 2.0.2
-> dotnet add package Vino.Core.Extensions.Layui --version 2.0.2
+<br/> PM> Install-Package Vino.Core.Extensions.Layui -Version 2.0.2
+<br/> dotnet add package Vino.Core.Extensions.Layui --version 2.0.2
 
 * 使用方法
     1. 在Startup的ConfigureServices方法中
     ```c#
-            //使用Layui
-            services.AddLayui();
+        //使用Layui
+        services.AddLayui();
     ```
 
     2. _ViewImports.cshtml文件中添加
