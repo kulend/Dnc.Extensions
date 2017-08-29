@@ -5,11 +5,12 @@
 </p>
 
 * 版本发布
+	<p>[2017.08.29] 版本 2.0.2.1</p>
     <p>[2017.08.28] 版本 2.0.2.0</p>
 
 * 安装方法
-<br/> PM> Install-Package Vino.Core.Extensions.Layui -Version 2.0.2
-<br/> dotnet add package Vino.Core.Extensions.Layui --version 2.0.2
+<br/> PM> Install-Package Vino.Core.Extensions.Layui -Version 2.0.2.1
+<br/> dotnet add package Vino.Core.Extensions.Layui --version 2.0.2.1
 
 * 使用方法
     1. 在Startup的ConfigureServices方法中

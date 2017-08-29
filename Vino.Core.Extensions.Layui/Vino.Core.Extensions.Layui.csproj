@@ -2,18 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <Version>2.0.2.0</Version>
+    <Version>2.0.2.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>kulend@qq.com</Authors>
     <Company>www.vinotec.cn</Company>
-    <Product>Vino.Core</Product>
+    <Product>.net core页面使用layui的HtmlHelper扩展</Product>
     <Description>如果您的.net core 2.0项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。</Description>
     <Copyright>Copyright © vinotec.cn</Copyright>
     <PackageLicenseUrl>https://github.com/kulend/Vino.Core.Extensions/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/kulend/Vino.Core.Extensions</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kulend/Vino.Core.Extensions</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>vino layui</PackageTags>
+    <PackageTags>vino layui .netcore</PackageTags>
     <PackageReleaseNotes>如果您的.net core 2.0项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。</PackageReleaseNotes>
   </PropertyGroup>
 
