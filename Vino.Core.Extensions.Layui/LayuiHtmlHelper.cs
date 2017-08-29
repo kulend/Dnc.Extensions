@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return RenderEnumRadio(name, modelExplorer, metadata);
         }
 
-        public HtmlString LayuiFormActions(params LayuiActionButton[] buttons)
+        public HtmlString LayuiFormActions(params ActionButton[] buttons)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("<div class=\"layui-form-item\">");
@@ -147,14 +147,14 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 switch (btn)
                 {
-                    case LayuiSubmitActionButton submit:
+                    case SubmitButton submit:
                         if (string.IsNullOrEmpty(btn.Text))
                         {
                             btn.Text = _layuiOption.SubmitButtonText;
                         }
                         sb.AppendLine($"<button class=\"layui-btn {btn.Css}\" lay-submit>{btn.Text}</button>");
                         break;
-                    case LayuiCloseActionButton close:
+                    case CloseButton close:
                         if (string.IsNullOrEmpty(btn.Text))
                         {
                             btn.Text = _layuiOption.CloseButtonText;
@@ -165,7 +165,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         }
                         sb.AppendLine($"<button type=\"button\" class=\"layui-btn {btn.Css}\" OnClick=\"{btn.OnClick}\">{btn.Text}</button>");
                         break;
-                    case LayuiResetActionButton reset:
+                    case ResetButton reset:
                         if (string.IsNullOrEmpty(btn.Text))
                         {
                             btn.Text = _layuiOption.ResetButtonText;
@@ -533,22 +533,17 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 input.MergeAttribute("data-type", metadata.DataTypeName.ToLower());
             }
-            //if (modelExplorer.Model != null)
-            //{
-            //    if (bool.TryParse(modelExplorer.Model.ToString(), out bool modelChecked))
-            //    {
-            //        if (modelChecked)
-            //        {
-            //            input.MergeAttribute("checked", "checked");
-            //        }
-            //    }
-            //}
+
+            if (modelExplorer.Model != null)
+            {
+                input.MergeAttribute("value", modelExplorer.Model.ToString());
+            }
 
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
             tag.InnerHtml.AppendHtml("<div class=\"layui-input-inline\">");
             tag.InnerHtml.AppendHtml(input);
             tag.InnerHtml.AppendHtml("</div>");
-            //tag.InnerHtml.AppendHtml("<script>$(function () {layui.use('laydate', function(){var laydate = layui.laydate;laydate.render({elem: '#" + name + "'});});});</script>");
+
             return tag;
         }
 
@@ -567,34 +562,32 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
     }
 
-    public class LayuiActionButton
+    public class ActionButton
     {
         public string Id { set; get; }
 
         public string Text { set; get; }
-
-        //public string Action { set; get; }
 
         public string Css { set; get; }
 
         public string OnClick { set; get; }
     }
 
-    public class LayuiSubmitActionButton : LayuiActionButton
+    public class SubmitButton : ActionButton
     {
     }
 
-    public class LayuiCloseActionButton : LayuiActionButton
+    public class CloseButton : ActionButton
     {
-        public LayuiCloseActionButton()
+        public CloseButton()
         {
             Css = "layui-btn-warm";
         }
     }
 
-    public class LayuiResetActionButton : LayuiActionButton
+    public class ResetButton : ActionButton
     {
-        public LayuiResetActionButton()
+        public ResetButton()
         {
             Css = "layui-btn-primary";
         }

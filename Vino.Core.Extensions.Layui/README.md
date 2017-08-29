@@ -25,7 +25,7 @@
 
     3. 定义Model及其属性，例如：
     ```c#
-    public class DemoDto
+    public class DemoModel
     {
         /// <summary>
         /// ID
@@ -48,24 +48,23 @@
         public string Url { get; set; }
 
         /// <summary>
-        /// 排序
+        /// 序号
         /// </summary>
-        [Display(Name = "排序值")]
+        [Display(Name = "序号", Prompt ="0~9999")]
         public int OrderIndex { get; set; } = 0;
 
         /// <summary>
-        /// 是否显示
+        /// 开关
         /// </summary>
-        [Display(Name = "是否显示", Prompt = "是|否")]
-        public bool IsShow { get; set; } = true;
+        [Display(Name = "开关", Prompt = "开|关")]
+        public bool Switch { get; set; } = true;
 
         [Display(Name = "时间")]
-        [DisplayFormat(DataFormatString = "yyyy-MM-dd HH:mm:ss")]
-        [DataType(DataType.DateTime)]
+        [DisplayFormat(DataFormatString = "yyyy-MM-dd HH:mm:ss")] //定义显示格式
+        [DataType(DataType.DateTime)] //也可以这样[DataType("datetime")]
         public DateTime? Date { set; get; }
 
         [Display(Name = "年份")]
-        [DisplayFormat(DataFormatString = "yyyy年")]
         [DataType("year")]
         public int Year { set; get; }
 
@@ -75,10 +74,18 @@
         public string Month { set; get; }
 
         /// <summary>
-        /// 性别
+        /// 枚举
         /// </summary>
         [Display(Name = "性别")]
         public EmSex Sex { set; get; }
+
+        /// <summary>
+        /// 多行文本
+        /// </summary>
+        [Display(Name = "备注", Prompt = "请输入您的备注信息...")]
+        [MaxLength(500)]
+        [DataType(DataType.MultilineText)] //或者[DataType("textarea")]
+        public string Remark { set; get; }
     }
 
     /// <summary>
@@ -97,20 +104,21 @@
     }
     ```
 
-    4. 在form中使用@Html.LayuiInputFor，如
+    4. 在form中使用@Html.InputFor，如
     ```c#
-        @using (Html.LayuiBeginForm<DemoDto>("Save"))
+        @using (Html.BeginForm<DemoModel>("Save"))
         {
-            @Html.LayuiInputFor(x => x.Id)
-            @Html.LayuiInputFor(x => x.Name)
-            @Html.LayuiInputFor(x => x.Url)
-            @Html.LayuiInputFor(x => x.IsShow)
-            @Html.LayuiInputFor(x => x.OrderIndex)
-            @Html.LayuiInputFor(x => x.Date)
-            @Html.LayuiInputFor(x => x.Year)
-            @Html.LayuiInputFor(x => x.Month)
-            @Html.LayuiInputFor(x => x.Sex)
-            @Html.LayuiFormActionsForSubmitAndClose()
+            @Html.InputFor(x => x.Id)
+            @Html.InputFor(x => x.Name)
+            @Html.InputFor(x => x.Url)
+            @Html.InputFor(x => x.OrderIndex)
+            @Html.InputFor(x => x.Switch)
+            @Html.InputFor(x => x.Date)
+            @Html.InputFor(x => x.Year)
+            @Html.InputFor(x => x.Month)
+            @Html.InputFor(x => x.Sex)
+            @Html.InputFor(x => x.Remark)
+			@Html.ActionsForSubmitAndReset()
         }
     ```
     Ok, 是不是很简单？
@@ -120,24 +128,24 @@
 
     2. bool型字段默认会渲染成switch，lay-text需要这样设置：
     ```c#
-        [Display(Name = "是否显示", Prompt = "是|否")]
+        [Display(Name = "开关", Prompt = "开|关")]
     ```
 
-    3. 除了字段类型，很多时候需要DataTypeAttribute来判断输入类型，默认为text，还可设置hidden，password，multilinetext，textarea，datetime，date，year，month，time等。multilinetext和textarea会渲染成Textarea。
+    3. 除了字段类型，很多时候需要DataTypeAttribute来判断渲染方式，默认为text，还可设置hidden，password，multilinetext，textarea，datetime，date，year，month，time等。multilinetext和textarea会渲染成Textarea。
 
 
-    4. 关于FormActions按钮相关，
-        <br/> 1). @Html.LayuiFormActionsForSubmit(), 添加保存按钮。
-        <br/> 2). @Html.LayuiFormActionsForSubmitAndClose(), 添加保存和关闭按钮。
-        <br/> 3). @Html.LayuiFormActionsForSubmitAndReset(), 添加保存和重置按钮。
-        <br/> 4). @Html.LayuiFormActions(btns), 添加自定义按钮，例如：
+    4. 关于Action按钮，
+        <br/> 1). @Html.ActionsForSubmit(), 添加保存按钮（提交表单）。
+        <br/> 2). @Html.ActionsForSubmitAndClose(), 添加保存和关闭按钮。
+        <br/> 3). @Html.ActionsForSubmitAndReset(), 添加保存和重置按钮。
+        <br/> 4). @Html.ActionsFor(btns), 添加自定义按钮，例如：
     ```c#
-        @Html.LayuiFormActions(
-           new LayuiSubmitActionButton(),
-           new LayuiCloseActionButton(),
-           new LayuiResetActionButton { Text = "重置表单" },
-           new LayuiActionButton { Id = "btn_aaa", Text = "自定义按钮", Css = "my-btn", OnClick = "alert(1);" }
-        )
+        @Html.ActionsFor(
+                new SubmitButton(),
+                new CloseButton(),
+                new ResetButton { Text = "重置表单" },
+                new ActionButton { Id = "btn_test", Text = "自定义按钮", Css = "btn-test", OnClick = "alert(1);" }
+            )
     ``` 
 
     5. 修改全局默认配置
