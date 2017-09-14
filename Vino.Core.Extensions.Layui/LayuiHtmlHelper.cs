@@ -138,48 +138,58 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return RenderEnumRadio(name, modelExplorer, metadata);
         }
 
-        public HtmlString LayuiFormActions(params ActionButton[] buttons)
+        public HtmlString LayuiActionsFor(params ActionButton[] buttons)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("<div class=\"layui-form-item\">");
-            sb.AppendLine("<div class=\"layui-input-block\">");
+            if (_layuiOption.ActionsInFormItem)
+            {
+                sb.AppendLine("<div class=\"layui-form-item\">");
+                sb.AppendLine("<div class=\"layui-input-block\">");
+            }
             foreach (var btn in buttons)
             {
                 switch (btn)
                 {
                     case SubmitButton submit:
-                        if (string.IsNullOrEmpty(btn.Text))
+                        if (submit.IsDefault)
                         {
-                            btn.Text = _layuiOption.SubmitButtonText;
+                            submit.Text = _layuiOption.Submit.Text;
+                            submit.Css  = _layuiOption.Submit.Css;
+                            submit.Action = _layuiOption.Submit.Action;
+                            submit.Icon = _layuiOption.Submit.Icon;
                         }
                         sb.AppendLine($"<button class=\"layui-btn {btn.Css}\" lay-submit>{btn.Text}</button>");
                         break;
                     case CloseButton close:
-                        if (string.IsNullOrEmpty(btn.Text))
+                        if (close.IsDefault)
                         {
-                            btn.Text = _layuiOption.CloseButtonText;
+                            close.Text = _layuiOption.Close.Text;
+                            close.Css = _layuiOption.Close.Css;
+                            close.Action = _layuiOption.Close.Action;
+                            close.Icon = _layuiOption.Close.Icon;
                         }
-                        if (string.IsNullOrEmpty(btn.OnClick))
-                        {
-                            btn.OnClick = _layuiOption.CloseButtonOnClick;
-                        }
-                        sb.AppendLine($"<button type=\"button\" class=\"layui-btn {btn.Css}\" OnClick=\"{btn.OnClick}\">{btn.Text}</button>");
+                        sb.AppendLine($"<button type=\"button\" class=\"layui-btn {btn.Css}\" Action=\"{btn.Action}\">{btn.Text}</button>");
                         break;
                     case ResetButton reset:
-                        if (string.IsNullOrEmpty(btn.Text))
+                        if (reset.IsDefault)
                         {
-                            btn.Text = _layuiOption.ResetButtonText;
+                            reset.Text = _layuiOption.Reset.Text;
+                            reset.Css = _layuiOption.Reset.Css;
+                            reset.Action = _layuiOption.Reset.Action;
+                            reset.Icon = _layuiOption.Reset.Icon;
                         }
                         sb.AppendLine($"<button type=\"reset\" class=\"layui-btn {btn.Css}\">{btn.Text}</button>");
                         break;
                     default:
-                        sb.AppendLine($"<button type=\"button\" class=\"layui-btn {btn.Css}\" OnClick=\"{btn.OnClick}\">{btn.Text}</button>");
+                        sb.AppendLine($"<button type=\"button\" class=\"layui-btn {btn.Css}\" Action=\"{btn.Action}\">{btn.Text}</button>");
                         break;
                 }
             }
 
-            sb.AppendLine("</div></div>");
-
+            if (_layuiOption.ActionsInFormItem)
+            {
+                sb.AppendLine("</div></div>");
+            }
             return new HtmlString(sb.ToString());
         }
 
@@ -245,6 +255,74 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 case "month":
                 case "time":
                     content = RenderDateTime(name, modelExplorer, metadata);
+                    break;
+            }
+
+            return content;
+        }
+
+        public IHtmlContent LayuiShowFor<TResult>(Expression<Func<TModel, TResult>> expression)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            var modelExplorer = GetModelExplorer(expression);
+            var metadata = modelExplorer.Metadata;
+            var name = GetExpressionName(expression);
+
+            Type type = GetRealType(modelExplorer.ModelType);
+
+            IHtmlContent content = new HtmlString(name);
+            var dataTypeName = metadata.DataTypeName;
+            if (string.IsNullOrEmpty(dataTypeName))
+            {
+                if (type == typeof(bool))
+                {
+                    dataTypeName = "switch";
+                }
+                else if (metadata.IsEnum)
+                {
+                    dataTypeName = "enum_radio";
+                }
+                else if (type == typeof(DateTime))
+                {
+                    dataTypeName = "datetime";
+                }
+                else
+                {
+                    dataTypeName = "text";
+                }
+            }
+
+            switch (dataTypeName.ToLower())
+            {
+                case "text":
+                    content = RenderLable(name, modelExplorer, metadata);
+                    break;
+                case "hidden":
+                    content = RenderHidden(name, modelExplorer, metadata);
+                    break;
+                case "password":
+                    content = RenderPassword(name, modelExplorer, metadata);
+                    break;
+                case "switch":
+                    content = RenderSwitch(name, modelExplorer, metadata);
+                    break;
+                case "multilinetext":
+                case "textarea":
+                    content = RenderTextarea(name, modelExplorer, metadata);
+                    break;
+                case "enum_radio":
+                    content = RenderEnumRadio(name, modelExplorer, metadata);
+                    break;
+                case "datetime":
+                case "date":
+                case "year":
+                case "month":
+                case "time":
+                    content = RenderDateTimeShow(name, modelExplorer, metadata);
                     break;
             }
 
@@ -547,6 +625,64 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return tag;
         }
 
+        private IHtmlContent RenderLable(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
+        {
+            var tag = new TagBuilder("div");
+            tag.AddCssClass("layui-form-item");
+
+            var displayName = metadata.GetDisplayName();
+
+            var lable = new TagBuilder("label");
+            lable.AddCssClass("layui-form-label-show");
+            if (modelExplorer.Model != null)
+            {
+                lable.InnerHtml.Append(modelExplorer.Model.ToString());
+            }
+
+            tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
+            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block\">");
+            tag.InnerHtml.AppendHtml(lable);
+            tag.InnerHtml.AppendHtml("</div>");
+            return tag;
+        }
+
+        private IHtmlContent RenderDateTimeShow(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
+        {
+            var tag = new TagBuilder("div");
+            tag.AddCssClass("layui-form-item");
+
+            var displayName = metadata.GetDisplayName();
+            var placeholder = metadata.Placeholder;
+
+            var label = new TagBuilder("label");
+            label.AddCssClass("layui-form-label-show");
+
+            
+            metadata.DataTypeName.ToLower();
+
+            if (modelExplorer.Model != null)
+            {
+                var formate = metadata.DisplayFormatString;
+                Type type = GetRealType(modelExplorer.ModelType);
+                if (type == typeof(DateTime))
+                {
+                    DateTime value = (DateTime)modelExplorer.Model;
+                    if (string.IsNullOrEmpty(formate))
+                    {
+                        formate = "yyyy-MM-dd HH:mm:ss";
+                    }
+                    label.InnerHtml.Append(value.ToString(formate));
+                }
+            }
+
+            tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
+            tag.InnerHtml.AppendHtml("<div class=\"layui-input-inline\">");
+            tag.InnerHtml.AppendHtml(label);
+            tag.InnerHtml.AppendHtml("</div>");
+
+            return tag;
+        }
+
         private bool IsNullableType(Type theType)
         {
             return (theType.IsGenericType && theType.GetGenericTypeDefinition().Equals(typeof(Nullable<>)));
@@ -564,32 +700,31 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
     public class ActionButton
     {
+        public bool IsDefault { set; get; } = false;
+
         public string Id { set; get; }
 
         public string Text { set; get; }
 
         public string Css { set; get; }
 
-        public string OnClick { set; get; }
+        public string Action { set; get; }
+
+        public string Icon { set; get; }
     }
 
     public class SubmitButton : ActionButton
     {
+        public static SubmitButton DEFAULT = new SubmitButton { IsDefault = true };
     }
 
     public class CloseButton : ActionButton
     {
-        public CloseButton()
-        {
-            Css = "layui-btn-warm";
-        }
+        public static CloseButton DEFAULT = new CloseButton { IsDefault = true };
     }
 
     public class ResetButton : ActionButton
     {
-        public ResetButton()
-        {
-            Css = "layui-btn-primary";
-        }
+        public static ResetButton DEFAULT = new ResetButton { IsDefault = true };
     }
 }

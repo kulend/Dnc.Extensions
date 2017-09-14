@@ -103,12 +103,12 @@
                     @Html.InputFor(x => x.Sex)
                     @Html.InputFor(x => x.Remark)
                     @Html.ActionsForSubmitAndReset()
-                    @Html.ActionsFor(
+                    @*@Html.ActionsFor(
                            new SubmitButton(),
                            new CloseButton(),
                            new ResetButton { Text = "重置表单" },
                            new ActionButton { Id = "btn_test", Text = "自定义按钮", Css = "btn-test", OnClick = "alert(1);" }
-                        )
+                        )*@
                 }
             </div>
         </div>
