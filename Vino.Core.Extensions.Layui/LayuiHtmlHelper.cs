@@ -193,7 +193,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return new HtmlString(sb.ToString());
         }
 
-        public IHtmlContent LayuiInputFor<TResult>(Expression<Func<TModel, TResult>> expression)
+        public IHtmlContent LayuiInputFor<TResult>(Expression<Func<TModel, TResult>> expression, params KeyValuePair<string, string>[] attrs)
         {
             if (expression == null)
             {
@@ -240,7 +240,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                     content = RenderPassword(name, modelExplorer, metadata);
                     break;
                 case "switch":
-                    content = RenderSwitch(name, modelExplorer, metadata);
+                    content = RenderSwitch(name, modelExplorer, metadata, attrs);
                     break;
                 case "multilinetext":
                 case "textarea":
@@ -411,7 +411,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return input;
         }
 
-        private IHtmlContent RenderSwitch(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
+        private IHtmlContent RenderSwitch(string name, ModelExplorer modelExplorer, ModelMetadata metadata, params KeyValuePair<string, string>[] attrs)
         {
             var tag = new TagBuilder("div");
             tag.AddCssClass("layui-form-item");
@@ -426,6 +426,15 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             input.MergeAttribute("name", name, replaceExisting: true);
             input.MergeAttribute("value", "true");
             input.MergeAttribute("lay-skin", "switch");
+
+            if (attrs != null && attrs.Length > 0)
+            {
+                foreach (var attr in attrs)
+                {
+                    input.MergeAttribute(attr.Key, attr.Value);
+                }
+            }
+
             if (!string.IsNullOrEmpty(placeholder))
             {
                 input.MergeAttribute("lay-text", placeholder);

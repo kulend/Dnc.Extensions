@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Html;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -22,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
 
-        public static IHtmlContent InputFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression)
+        public static IHtmlContent InputFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression, params KeyValuePair<string, string>[] attrs)
         {
             if (htmlHelper == null)
             {
@@ -38,7 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 throw new Exception("请在Startup.cs中添加service.AddLayui()");
             }
-            return helper.LayuiInputFor(expression);
+            return helper.LayuiInputFor(expression, attrs);
         }
 
         public static IHtmlContent ShowFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression)
