@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -36,107 +37,113 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             this._layuiOption = layuiOption.Value;
         }
 
-        public MvcForm LayuiBeginForm(string action, FormMethod method = FormMethod.Post)
+        public MvcForm LayuiBeginForm(string actionName, string controllerName, object routeValues, FormMethod method, bool? antiforgery, object htmlAttributes)
         {
             ViewContext.FormContext = new FormContext
             {
                 CanRenderAtEndOfForm = true
             };
 
-            var tagBuilder = new TagBuilder("form");
-            tagBuilder.GenerateId("inputForm", "");
-            tagBuilder.AddCssClass("layui-form");
-            tagBuilder.MergeAttribute("action", action);
-            tagBuilder.MergeAttribute("method", method.ToString(), replaceExisting: true);
-
-            tagBuilder.TagRenderMode = TagRenderMode.StartTag;
-            tagBuilder.WriteTo(ViewContext.Writer, _htmlEncoder);
+            var tagBuilder = _htmlGenerator.GenerateForm(ViewContext, actionName, controllerName, routeValues, 
+                HtmlHelper.GetFormMethodString(method), htmlAttributes);
+            if (tagBuilder != null)
+            {
+                tagBuilder.AddCssClass("layui-form");
+                tagBuilder.MergeAttribute("auto-bind", "true", replaceExisting: false);
+                tagBuilder.TagRenderMode = TagRenderMode.StartTag;
+                tagBuilder.WriteTo(ViewContext.Writer, _htmlEncoder);
+            }
+            var shouldGenerateAntiforgery = antiforgery ?? method != FormMethod.Get;
+            if (shouldGenerateAntiforgery)
+            {
+                ViewContext.FormContext.EndOfFormContent.Add(_htmlGenerator.GenerateAntiforgery(ViewContext));
+            }
 
             return new MvcForm(ViewContext, _htmlEncoder);
         }
 
-        public IHtmlContent LayuiTextBoxFor<TResult>(Expression<Func<TModel, TResult>> expression)
-        {
-            if (expression == null)
-            {
-                throw new ArgumentNullException(nameof(expression));
-            }
+        //public IHtmlContent LayuiTextBoxFor<TResult>(Expression<Func<TModel, TResult>> expression)
+        //{
+        //    if (expression == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(expression));
+        //    }
 
-            var modelExplorer = GetModelExplorer(expression);
-            var metadata = modelExplorer.Metadata;
-            var name = GetExpressionName(expression);
-            return RenderTextBox(name, modelExplorer, metadata);
-        }
+        //    var modelExplorer = GetModelExplorer(expression);
+        //    var metadata = modelExplorer.Metadata;
+        //    var name = GetExpressionName(expression);
+        //    return RenderTextBox(name, modelExplorer, metadata);
+        //}
 
-        public IHtmlContent LayuiSwitchFor<TResult>(Expression<Func<TModel, TResult>> expression)
-        {
-            if (expression == null)
-            {
-                throw new ArgumentNullException(nameof(expression));
-            }
+        //public IHtmlContent LayuiSwitchFor<TResult>(Expression<Func<TModel, TResult>> expression)
+        //{
+        //    if (expression == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(expression));
+        //    }
 
-            var modelExplorer = GetModelExplorer(expression);
-            var metadata = modelExplorer.Metadata;
-            var name = GetExpressionName(expression);
+        //    var modelExplorer = GetModelExplorer(expression);
+        //    var metadata = modelExplorer.Metadata;
+        //    var name = GetExpressionName(expression);
 
-            return RenderSwitch(name, modelExplorer, metadata);
-        }
+        //    return RenderSwitch(name, modelExplorer, metadata);
+        //}
 
-        public IHtmlContent LayuiTextAreaFor<TResult>(Expression<Func<TModel, TResult>> expression)
-        {
-            if (expression == null)
-            {
-                throw new ArgumentNullException(nameof(expression));
-            }
+        //public IHtmlContent LayuiTextAreaFor<TResult>(Expression<Func<TModel, TResult>> expression)
+        //{
+        //    if (expression == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(expression));
+        //    }
 
-            var modelExplorer = GetModelExplorer(expression);
-            var metadata = modelExplorer.Metadata;
-            var name = GetExpressionName(expression);
+        //    var modelExplorer = GetModelExplorer(expression);
+        //    var metadata = modelExplorer.Metadata;
+        //    var name = GetExpressionName(expression);
 
-            return RenderTextarea(name, modelExplorer, metadata);
-        }
+        //    return RenderTextarea(name, modelExplorer, metadata);
+        //}
 
-        public IHtmlContent LayuiHiddenFor<TResult>(Expression<Func<TModel, TResult>> expression)
-        {
-            if (expression == null)
-            {
-                throw new ArgumentNullException(nameof(expression));
-            }
+        //public IHtmlContent LayuiHiddenFor<TResult>(Expression<Func<TModel, TResult>> expression)
+        //{
+        //    if (expression == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(expression));
+        //    }
 
-            var modelExplorer = GetModelExplorer(expression);
-            var metadata = modelExplorer.Metadata;
-            var name = GetExpressionName(expression);
+        //    var modelExplorer = GetModelExplorer(expression);
+        //    var metadata = modelExplorer.Metadata;
+        //    var name = GetExpressionName(expression);
 
-            return RenderHidden(name, modelExplorer, metadata);
-        }
+        //    return RenderHidden(name, modelExplorer, metadata);
+        //}
 
-        public IHtmlContent LayuiPasswordFor<TResult>(Expression<Func<TModel, TResult>> expression)
-        {
-            if (expression == null)
-            {
-                throw new ArgumentNullException(nameof(expression));
-            }
+        //public IHtmlContent LayuiPasswordFor<TResult>(Expression<Func<TModel, TResult>> expression)
+        //{
+        //    if (expression == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(expression));
+        //    }
 
-            var modelExplorer = GetModelExplorer(expression);
-            var metadata = modelExplorer.Metadata;
-            var name = GetExpressionName(expression);
+        //    var modelExplorer = GetModelExplorer(expression);
+        //    var metadata = modelExplorer.Metadata;
+        //    var name = GetExpressionName(expression);
 
-            return RenderPassword(name, modelExplorer, metadata);
-        }
+        //    return RenderPassword(name, modelExplorer, metadata);
+        //}
 
-        public IHtmlContent LayuiEnumRadioFor<TResult>(Expression<Func<TModel, TResult>> expression)
-        {
-            if (expression == null)
-            {
-                throw new ArgumentNullException(nameof(expression));
-            }
+        //public IHtmlContent LayuiEnumRadioFor<TResult>(Expression<Func<TModel, TResult>> expression)
+        //{
+        //    if (expression == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(expression));
+        //    }
 
-            var modelExplorer = GetModelExplorer(expression);
-            var metadata = modelExplorer.Metadata;
-            var name = GetExpressionName(expression);
+        //    var modelExplorer = GetModelExplorer(expression);
+        //    var metadata = modelExplorer.Metadata;
+        //    var name = GetExpressionName(expression);
 
-            return RenderEnumRadio(name, modelExplorer, metadata);
-        }
+        //    return RenderEnumRadio(name, modelExplorer, metadata);
+        //}
 
         public HtmlString LayuiActionsFor(params ActionButton[] buttons)
         {
@@ -193,7 +200,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return new HtmlString(sb.ToString());
         }
 
-        public IHtmlContent LayuiInputFor<TResult>(Expression<Func<TModel, TResult>> expression, params KeyValuePair<string, string>[] attrs)
+        public IHtmlContent LayuiInputFor<TResult>(Expression<Func<TModel, TResult>> expression, object htmlAttributes)
         {
             if (expression == null)
             {
@@ -240,14 +247,14 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                     content = RenderPassword(name, modelExplorer, metadata);
                     break;
                 case "switch":
-                    content = RenderSwitch(name, modelExplorer, metadata, attrs);
+                    content = RenderSwitch(name, modelExplorer, metadata, htmlAttributes);
                     break;
                 case "multilinetext":
                 case "textarea":
                     content = RenderTextarea(name, modelExplorer, metadata);
                     break;
                 case "enum_radio":
-                    content = RenderEnumRadio(name, modelExplorer, metadata, attrs);
+                    content = RenderEnumRadio(name, modelExplorer, metadata, htmlAttributes);
                     break;
                 case "datetime":
                 case "date":
@@ -312,7 +319,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                     break;
                 case "multilinetext":
                 case "textarea":
-                    content = RenderTextarea(name, modelExplorer, metadata);
+                    content = RenderTextareaShow(name, modelExplorer, metadata);
                     break;
                 case "enum_radio":
                     content = RenderEnumRadioShow(name, modelExplorer, metadata);
@@ -404,8 +411,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 }
             }
 
+            bool isInline = !string.IsNullOrEmpty(metadata.Description);
+
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
-            tag.InnerHtml.AppendHtml($"<div class=\"layui-input-inline {length}\">");
+            tag.InnerHtml.AppendHtml($"<div class=\"{(isInline ? "layui-input-inline" : "layui-input-block")} {length}\">");
             tag.InnerHtml.AppendHtml(input);
             tag.InnerHtml.AppendHtml("</div>");
             if (!string.IsNullOrEmpty(metadata.Description))
@@ -430,7 +439,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return input;
         }
 
-        private IHtmlContent RenderSwitch(string name, ModelExplorer modelExplorer, ModelMetadata metadata, params KeyValuePair<string, string>[] attrs)
+        private IHtmlContent RenderSwitch(string name, ModelExplorer modelExplorer, ModelMetadata metadata, object htmlAttributes)
         {
             var tag = new TagBuilder("div");
             tag.AddCssClass("layui-form-item");
@@ -446,18 +455,13 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             input.MergeAttribute("value", "true");
             input.MergeAttribute("lay-skin", "switch");
 
-            if (attrs != null && attrs.Length > 0)
-            {
-                foreach (var attr in attrs)
-                {
-                    input.MergeAttribute(attr.Key, attr.Value);
-                }
-            }
-
             if (!string.IsNullOrEmpty(placeholder))
             {
                 input.MergeAttribute("lay-text", placeholder);
             }
+
+            MergeHtmlAttributes(input, htmlAttributes);
+
             if (modelExplorer.Model != null)
             {
                 if (bool.TryParse(modelExplorer.Model.ToString(), out bool modelChecked))
@@ -514,7 +518,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             }
 
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
-            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block\">");
+            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block long\">");
             tag.InnerHtml.AppendHtml(input);
             tag.InnerHtml.AppendHtml("</div>");
             return tag;
@@ -569,7 +573,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return tag;
         }
 
-        private IHtmlContent RenderEnumRadio(string name, ModelExplorer modelExplorer, ModelMetadata metadata, params KeyValuePair<string, string>[] attrs)
+        private IHtmlContent RenderEnumRadio(string name, ModelExplorer modelExplorer, ModelMetadata metadata, object htmlAttributes)
         {
             var tag = new TagBuilder("div");
             tag.AddCssClass("layui-form-item");
@@ -590,10 +594,12 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             }
 
             var displays = metadata.EnumGroupedDisplayNamesAndValues ?? new List<KeyValuePair<EnumGroupAndName, string>>();
+            var keyNames = metadata.EnumNamesAndValues;
             foreach (var enumItem in displays)
             {
                 var itemName = enumItem.Key.Name;
                 var itemValue = enumItem.Value;
+                var itemKey = keyNames.SingleOrDefault(x => x.Value.Equals(itemValue)).Key;
                 var input = new TagBuilder("input");
                 input.GenerateId(name + "_" + itemValue, "");
                 input.TagRenderMode = TagRenderMode.SelfClosing;
@@ -601,17 +607,12 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 input.MergeAttribute("name", name, replaceExisting: true);
                 input.MergeAttribute("value", itemValue);
                 input.MergeAttribute("title", itemName);
+                input.MergeAttribute("key", itemKey);
                 if (itemValue.Equals(value))
                 {
                     input.MergeAttribute("checked", "checked");
                 }
-                if (attrs != null && attrs.Length > 0)
-                {
-                    foreach (var attr in attrs)
-                    {
-                        input.MergeAttribute(attr.Key, attr.Value);
-                    }
-                }
+                MergeHtmlAttributes(input, htmlAttributes);
                 tag.InnerHtml.AppendHtml(input);
             }
 
@@ -854,6 +855,31 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return tag;
         }
 
+        private IHtmlContent RenderTextareaShow(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
+        {
+            var tag = new TagBuilder("div");
+            tag.AddCssClass("layui-form-item");
+
+            var displayName = metadata.GetDisplayName();
+
+            var lable = new TagBuilder("label");
+            lable.AddCssClass("layui-form-label-show");
+            if (modelExplorer.Model != null)
+            {
+                var ars = modelExplorer.Model.ToString().Split(new string[] { "\r\n", "\n"}, StringSplitOptions.None);
+                foreach (var item in ars)
+                {
+                    lable.InnerHtml.Append(item);
+                    lable.InnerHtml.AppendHtml("<br/>");
+                }
+            }
+
+            tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
+            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block\">");
+            tag.InnerHtml.AppendHtml(lable);
+            tag.InnerHtml.AppendHtml("</div>");
+            return tag;
+        }
 
         #endregion
 
@@ -869,6 +895,47 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 return theType.GetGenericArguments()[0];
             }
             return theType;
+        }
+
+        private string JsonSerialize(object obj)
+        {
+            if (obj == null)
+            {
+                return "";
+            }
+            return JsonConvert.SerializeObject(obj);
+        }
+
+        private void MergeHtmlAttributes(TagBuilder tag, object htmlAttributes)
+        {
+            if (tag == null || htmlAttributes == null)
+            {
+                return;
+            }
+            var attrs = AnonymousObjectToHtmlAttributes(htmlAttributes);
+            foreach (var attr in attrs)
+            {
+                if (attr.Value == null)
+                {
+                    tag.MergeAttribute(attr.Key, null, replaceExisting: true);
+                }
+                else if (attr.Value is string s)
+                {
+                    tag.MergeAttribute(attr.Key, s, replaceExisting: true);
+                }
+                else if (attr.Value is int
+                    || attr.Value is decimal
+                    || attr.Value is float
+                    || attr.Value is bool
+                    || attr.Value is short)
+                {
+                    tag.MergeAttribute(attr.Key, attr.Value.ToString(), replaceExisting: true);
+                }
+                else
+                {
+                    tag.MergeAttribute(attr.Key, JsonSerialize(attr.Value), replaceExisting: true);
+                }
+            }
         }
     }
 

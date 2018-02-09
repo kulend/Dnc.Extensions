@@ -19,11 +19,37 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 throw new Exception("请在Startup.cs中添加service.AddLayui()");
             }
-            return helper.LayuiBeginForm(action);
+
+            return helper.LayuiBeginForm(
+                actionName: action,
+                controllerName: null,
+                routeValues: null,
+                method: FormMethod.Post,
+                antiforgery: null,
+                htmlAttributes: null);
         }
 
+        public static MvcForm BeginForm<TModel>(this IHtmlHelper htmlHelper, string action, object htmlAttributes)
+        {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+            var helper = htmlHelper as LayuiHtmlHelper<TModel>;
+            if (helper == null)
+            {
+                throw new Exception("请在Startup.cs中添加service.AddLayui()");
+            }
+            return helper.LayuiBeginForm(
+                actionName: action,
+                controllerName: null,
+                routeValues: null,
+                method: FormMethod.Post,
+                antiforgery: null,
+                htmlAttributes: htmlAttributes);
+        }
 
-        public static IHtmlContent InputFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression, params KeyValuePair<string, string>[] attrs)
+        public static IHtmlContent InputFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression, object htmlAttributes = null)
         {
             if (htmlHelper == null)
             {
@@ -39,7 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 throw new Exception("请在Startup.cs中添加service.AddLayui()");
             }
-            return helper.LayuiInputFor(expression, attrs);
+            return helper.LayuiInputFor(expression, htmlAttributes);
         }
 
         public static IHtmlContent ShowFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression)
