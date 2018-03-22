@@ -125,7 +125,7 @@
     Ok, 是不是很简单？
 
 * 其他说明
-    1. 设定字段类型是int或short，这input标签会添加input-length-num样式css，如果是字符串字段，设定MaxLengthAttribute，长度>=50，添加样式"input-length-long",如果长度20~50，添加样式"input-length-middle"，如果长度小于20，则添加样式"input-length-short"。用户可在css文件中自定义文本框宽度。
+    1. 设定字段类型是int或short，这时input标签会添加input-length-num样式css，如果是字符串字段，设定MaxLengthAttribute，长度>=50，添加样式"input-length-long",如果长度20~50，添加样式"input-length-middle"，如果长度小于20，则添加样式"input-length-short"。用户可在css文件中自定义文本框宽度。
 
     2. bool型字段默认会渲染成switch，lay-text需要这样设置：
     ```c#

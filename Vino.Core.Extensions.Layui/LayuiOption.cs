@@ -14,5 +14,9 @@ namespace Vino.Core.Extensions.Layui
         public CloseButton Close { set; get; } = new CloseButton { Css = "layui-btn-sm layui-btn-warm", Text = "关 闭", Icon = "&#x1006;", Action = "javascript:closeWindow()" };
 
         public ResetButton Reset { set; get; } = new ResetButton { Css = "layui-btn-sm layui-btn-primary", Text = "重 置", Icon = "" };
+
+        public string ActionTagSize { set; get; }
+
+        public string ActionTagTheme { set; get; }
     }
 }
