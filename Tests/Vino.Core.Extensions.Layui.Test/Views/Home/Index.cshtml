@@ -90,26 +90,32 @@
         <div class="layui-body">
             <!-- 内容主体区域 -->
             <div style="padding: 15px;">
-                @using (Html.BeginForm<DemoModel>("Save"))
-                {
-                    @Html.InputFor(x => x.Id)
-                    @Html.InputFor(x => x.Name)
-                    @Html.InputFor(x => x.Url)
-                    @Html.InputFor(x => x.OrderIndex)
-                    @Html.InputFor(x => x.Switch)
-                    @Html.InputFor(x => x.Date)
-                    @Html.InputFor(x => x.Year)
-                    @Html.InputFor(x => x.Month)
-                    @Html.InputFor(x => x.Sex)
-                    @Html.InputFor(x => x.Remark)
-                    @Html.ActionsForSubmitAndReset()
-                    @*@Html.ActionsFor(
-                           new SubmitButton(),
-                           new CloseButton(),
-                           new ResetButton { Text = "重置表单" },
-                           new ActionButton { Id = "btn_test", Text = "自定义按钮", Css = "btn-test", OnClick = "alert(1);" }
-                        )*@
-                }
+                @using (Html.BeginForm<DemoModel>("#"))
+    {
+            @Html.InputFor(x => x.Id)
+            @Html.InputFor(x => x.Name)
+            @Html.TextBoxFor(x => x.Name)
+            @Html.TextBoxFor(x => x.Title)
+            @Html.TextBoxFor(x => x.Title2)
+            @Html.InputFor(x => x.Url)
+            @Html.InputFor(x => x.Email)
+            @Html.TextBoxFor(x => x.OrderIndex, null, null)
+            @Html.InputFor(x => x.OrderIndex)
+            @Html.InputFor(x => x.Dec)
+            @Html.InputFor(x => x.Switch)
+            @Html.InputFor(x => x.Date)
+            @Html.InputFor(x => x.Year)
+            @Html.InputFor(x => x.Month)
+            @Html.InputFor(x => x.Sex)
+            @Html.InputFor(x => x.Remark)
+            @Html.ActionsForSubmitAndReset()
+            @*@Html.ActionsFor(
+       new SubmitButton(),
+       new CloseButton(),
+       new ResetButton { Text = "重置表单" },
+       new ActionButton { Id = "btn_test", Text = "自定义按钮", Css = "btn-test", OnClick = "alert(1);" }
+    )*@
+}
             </div>
         </div>
 
@@ -126,24 +132,25 @@
         <script src="~/lib/jquery/dist/jquery.min.js"></script>
     </environment>
     <script src="~/lib/layui/layui.js"></script>
+    <script src="~/js/form.verify.js"></script>
     <script>
-    //JavaScript代码区域
-    layui.use(['element', 'form', 'laydate'], function () {
-        var element = layui.element;
-        var $ = layui.jquery;
-        var laydate = layui.laydate;
+        //JavaScript代码区域
+        layui.use(['element', 'form', 'laydate'], function () {
+            var element = layui.element;
+            var $ = layui.jquery;
+            var laydate = layui.laydate;
 
-        $(".layui-input.laydate").each(function () {
-            var self = $(this);
-            var type = self.data("type") || 'date';
-            var format = self.data("format") || 'yyyy-MM-dd';
-            laydate.render({
-                elem: self[0],
-                type: type,
-                format: format
+            $(".layui-input.laydate").each(function () {
+                var self = $(this);
+                var type = self.data("type") || 'date';
+                var format = self.data("format") || 'yyyy-MM-dd';
+                laydate.render({
+                    elem: self[0],
+                    type: type,
+                    format: format
+                });
             });
         });
-    });
     </script>
 </body>
 </html>

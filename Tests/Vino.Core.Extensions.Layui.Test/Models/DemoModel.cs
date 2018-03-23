@@ -17,22 +17,53 @@ namespace Vino.Core.Extensions.Layui.Test.Models
         /// <summary>
         /// 名称
         /// </summary>
-        [Required, MaxLength(20)]
+        [StringLength(100)]
+        [Required, MaxLength(20), MinLength(5)]
         [Display(Name = "名称")]
         public string Name { get; set; }
 
         /// <summary>
-        /// 地址
+        /// 名称
+        /// </summary>
+        [Required, MaxLength(20), MinLength(5)]
+        [Display(Name = "名称")]
+        public string Title { get; set; }
+
+        /// <summary>
+        /// 名称
+        /// </summary>
+        [Required, StringLength(100, MinimumLength =8)]
+        [Display(Name = "名称")]
+        public string Title2 { get; set; }
+
+        /// <summary>
+        /// 链接
         /// </summary>
         [MaxLength(256)]
         [Display(Name = "链接")]
+        [DataType(DataType.Url)]
         public string Url { get; set; }
+
+        /// <summary>
+        /// Email
+        /// </summary>
+        [MaxLength(256)]
+        [Display(Name = "Email")]
+        [DataType(DataType.EmailAddress)]
+        public string Email { get; set; }
 
         /// <summary>
         /// 序号
         /// </summary>
         [Display(Name = "序号", Prompt ="0~9999")]
         public int OrderIndex { get; set; } = 0;
+
+        /// <summary>
+        /// 序号
+        /// </summary>
+        [Display(Name = "数字", Prompt = "0~9999")]
+        [Range(-1, 999.05)]
+        public decimal Dec { get; set; } = 0;
 
         /// <summary>
         /// 开关

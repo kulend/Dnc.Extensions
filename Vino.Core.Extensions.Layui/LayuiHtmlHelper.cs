@@ -250,13 +250,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             switch (dataTypeName)
             {
                 case "text":
-                    content = RenderTextBox(name, modelExplorer, inline, false, htmlAttributes);
+                    content = RenderTextBox(name, modelExplorer, dataTypeName, inline, htmlAttributes);
                     break;
                 case "hidden":
                     content = RenderHidden(name, modelExplorer, metadata);
-                    break;
-                case "password":
-                    content = RenderTextBox(name, modelExplorer, inline, true, htmlAttributes);
                     break;
                 case "switch":
                     content = RenderSwitch(name, modelExplorer, metadata, inline, htmlAttributes);
@@ -275,12 +272,19 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 case "time":
                     content = RenderDateTime(name, modelExplorer, inline, htmlAttributes);
                     break;
+                case "url":
+                case "password":
+                case "email":
+                case "emailaddress":
+                default:
+                    content = RenderTextBox(name, modelExplorer, dataTypeName, inline, htmlAttributes);
+                    break;
             }
 
             return content;
         }
 
-        private IHtmlContent RenderTextBox(string name, ModelExplorer modelExplorer, bool inline, bool isPassword, object htmlAttributes)
+        private IHtmlContent RenderTextBox(string name, ModelExplorer modelExplorer, string dataType, bool inline, object htmlAttributes)
         {
             ModelMetadata metadata = modelExplorer.Metadata;
 
@@ -291,14 +295,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var isRequired = metadata.IsRequired;
             var placeholder = metadata.Placeholder;
 
-            //取得最大长度
-            var maxLength = 30;
-            var maxLengthAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(MaxLengthAttribute));
-            if (maxLengthAttribute != null)
-            {
-                maxLength = (maxLengthAttribute as MaxLengthAttribute).Length;
-            }
-            var isNumber = metadata.ModelType == typeof(Int32) || metadata.ModelType == typeof(Int16);
+            var isInteger = metadata.ModelType == typeof(Int32) || metadata.ModelType == typeof(Int16);
+            var isDecimal = metadata.ModelType == typeof(decimal) || metadata.ModelType == typeof(float) || metadata.ModelType == typeof(double);
             var input = new TagBuilder("input");
 
             //长度标签
@@ -322,7 +320,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
             input.AddCssClass("layui-input");
             input.TagRenderMode = TagRenderMode.SelfClosing;
-            if (isPassword)
+            if ("password".Equals(dataType))
             {
                 input.MergeAttribute("type", InputType.Password.ToString());
             }
@@ -335,14 +333,65 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 input.MergeAttribute("placeholder", placeholder);
             }
-            if (isRequired)
+
+            //最大长度
+            var maxLength = 0;
+            var minLength = 0;
+            var stringLengthAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(StringLengthAttribute));
+            if (stringLengthAttribute != null)
             {
-                input.MergeAttribute("lay-verify", "required");
+                maxLength = (stringLengthAttribute as StringLengthAttribute).MaximumLength;
+                minLength = (stringLengthAttribute as StringLengthAttribute).MinimumLength;
+            }
+            var maxLengthAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(MaxLengthAttribute));
+            if (maxLengthAttribute != null)
+            {
+                var vmax = (maxLengthAttribute as MaxLengthAttribute).Length;
+                if (maxLength > vmax || maxLength == 0) maxLength = vmax;
+            }
+            var minLengthAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(MinLengthAttribute));
+            if (minLengthAttribute != null)
+            {
+                var vmin = (minLengthAttribute as MinLengthAttribute).Length;
+                if (minLength < vmin) minLength = vmin;
             }
 
-            if (!isNumber)
+            if (isInteger) maxLength = 11;
+            if (isDecimal) maxLength = 32;
+            if ("phonenumber".Equals(dataType) || "mobile".Equals(dataType)) maxLength = 11;
+            input.MergeAttribute("maxlength", maxLength.ToString());
+
+            //表单验证规则
+            var verifys = new List<string>();
+            if (isRequired && !isInteger && !isDecimal) verifys.Add("required");
+            if (isInteger) verifys.Add("integer");
+            if (isDecimal) verifys.Add("number");
+            if ("phonenumber".Equals(dataType) || "mobile".Equals(dataType)) verifys.Add("phone");
+            if ("url".Equals(dataType)) verifys.Add("url");
+            if ("email".Equals(dataType) || "emailaddress".Equals(dataType)) verifys.Add("email");
+
+            if (isInteger || isDecimal)
             {
-                input.MergeAttribute("maxlength", maxLength.ToString());
+                var rangeAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(RangeAttribute));
+                if (rangeAttribute != null)
+                {
+                    input.MergeAttribute("data-val-range-min", (rangeAttribute as RangeAttribute).Minimum.ToString());
+                    input.MergeAttribute("data-val-range-max", (rangeAttribute as RangeAttribute).Maximum.ToString());
+                }
+            }
+            else
+            {
+                if (maxLength != 0 && minLength != 0)
+                {
+                    input.MergeAttribute("data-val-length-min", minLength.ToString());
+                    input.MergeAttribute("data-val-length-max", maxLength.ToString());
+                    verifys.Add("stringlength");
+                }
+            }
+
+            if (verifys.Any())
+            {
+                input.MergeAttribute("lay-verify", string.Join('|', verifys.ToArray()));
             }
 
             if (modelExplorer.Model != null)
