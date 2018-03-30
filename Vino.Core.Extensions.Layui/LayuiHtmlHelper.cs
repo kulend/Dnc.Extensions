@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return RenderItemShow(expression, false, dataType, htmlAttributes);
         }
 
-        public IHtmlContent LayuiShowInlineFor<TResult1, TResult2>(Expression<Func<TModel, TResult1>> expr1, Expression<Func<TModel, TResult2>> expr2)
+        public IHtmlContent LayuiShowFor<TResult1, TResult2>(Expression<Func<TModel, TResult1>> expr1, Expression<Func<TModel, TResult2>> expr2)
         {
             var tag = new TagBuilder("div");
             tag.AddCssClass("layui-form-item");
@@ -387,6 +387,16 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                     input.MergeAttribute("data-val-length-max", maxLength.ToString());
                     verifys.Add("stringlength");
                 }
+            }
+            //正则表达式验证
+            var regularExpressionAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(RegularExpressionAttribute));
+            if (regularExpressionAttribute != null)
+            {
+                var regular = regularExpressionAttribute as RegularExpressionAttribute;
+                verifys.Add("regular");
+
+                input.MergeAttribute("data-val-regular-pattern", regular.Pattern);
+                input.MergeAttribute("data-val-regular-msg", regular.ErrorMessage);
             }
 
             if (verifys.Any())

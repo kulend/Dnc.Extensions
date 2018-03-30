@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return helper.LayuiShowFor(expression, null, null);
         }
 
-        public static IHtmlContent ShowFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression, string dataType)
+        public static IHtmlContent ShowFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression, string dataType, object htmlAttributes = null)
         {
             if (htmlHelper == null)
             {
@@ -117,10 +117,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 throw new Exception("请在Startup.cs中添加service.AddLayui()");
             }
-            return helper.LayuiShowFor(expression, dataType, null);
+            return helper.LayuiShowFor(expression, dataType, htmlAttributes);
         }
         
-        public static IHtmlContent ShowInlineFor<TModel, TResult1, TResult2>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult1>> expr1, Expression<Func<TModel, TResult2>> expr2)
+        public static IHtmlContent ShowFor<TModel, TResult1, TResult2>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult1>> expr1, Expression<Func<TModel, TResult2>> expr2)
         {
             if (htmlHelper == null)
             {
@@ -131,7 +131,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 throw new Exception("请在Startup.cs中添加service.AddLayui()");
             }
-            return helper.LayuiShowInlineFor(expr1, expr2);
+            return helper.LayuiShowFor(expr1, expr2);
         }
 
         #region 操作按钮

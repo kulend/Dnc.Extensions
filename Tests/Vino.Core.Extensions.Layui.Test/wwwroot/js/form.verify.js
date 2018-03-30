@@ -86,6 +86,18 @@
                     return `输入的值长度不能大于${max}，当前长度${value.length}`;
                 }
             }
+        },
+        //正则表达式
+        regular: function (value, item) {
+            if (value) {
+                var pattern = $(item).data("val-regular-pattern");
+                var msg = $(item).data("val-regular-msg");
+                if (pattern != undefined && pattern.length > 0) {
+                    if (!new RegExp(pattern).test(value)) {
+                        return msg || "输入的值不符合规则";
+                    }               
+                }
+            }
         }
     }); 
 

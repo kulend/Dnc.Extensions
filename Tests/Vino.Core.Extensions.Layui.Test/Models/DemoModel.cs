@@ -20,6 +20,7 @@ namespace Vino.Core.Extensions.Layui.Test.Models
         [StringLength(100)]
         [Required, MaxLength(20), MinLength(5)]
         [Display(Name = "名称")]
+        [RegularExpression(@"^[a-zA-Z''-'\s]{1,40}$", ErrorMessage = "输入的名称不符合规则")]
         public string Name { get; set; }
 
         /// <summary>
