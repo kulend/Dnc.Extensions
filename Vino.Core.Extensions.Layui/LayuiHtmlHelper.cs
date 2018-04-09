@@ -702,6 +702,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 case "imageurl":
                     content = RenderImageShow(name, modelExplorer, metadata);
                     break;
+                default:
+                    content = RenderLable(modelExplorer, inline);
+                    break;
             }
 
             return content;
