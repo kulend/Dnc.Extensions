@@ -689,7 +689,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                     content = RenderTextareaShow(name, modelExplorer, metadata);
                     break;
                 case "enum_radio":
-                    content = RenderEnumRadioShow(name, modelExplorer, metadata);
+                    content = RenderEnumRadioShow(modelExplorer, inline);
                     break;
                 case "datetime":
                 case "date":
@@ -790,10 +790,12 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return tag;
         }
 
-        private IHtmlContent RenderEnumRadioShow(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
+        private IHtmlContent RenderEnumRadioShow(ModelExplorer modelExplorer, bool inline)
         {
+            ModelMetadata metadata = modelExplorer.Metadata;
+
             var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
+            tag.AddCssClass(inline ? "layui-inline" : "layui-form-item");
 
             if (!metadata.IsEnum)
             {
@@ -802,7 +804,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var displayName = metadata.GetDisplayName();
 
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
-            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block\">");
+            tag.InnerHtml.AppendHtml($"<div class=\"{(inline ? "layui-input-inline" : "layui-input-block")}\">");
 
             string value = "";
             if (modelExplorer.Model != null)
