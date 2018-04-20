@@ -404,6 +404,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 input.MergeAttribute("lay-verify", string.Join('|', verifys.ToArray()));
             }
 
+            if (!string.IsNullOrEmpty(_layuiOption.VerifyType))
+            {
+                input.MergeAttribute("lay-verType", _layuiOption.VerifyType);
+            }
+
             if (modelExplorer.Model != null)
             {
                 input.MergeAttribute("value", modelExplorer.Model.ToString());

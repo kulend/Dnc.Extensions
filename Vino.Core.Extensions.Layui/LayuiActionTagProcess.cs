@@ -25,11 +25,12 @@ namespace Vino.Core.Extensions.Layui
 
             var hasThemeCss = !string.IsNullOrEmpty(helper.Css) && (helper.Css.Contains("layui-btn-primary") 
                 || helper.Css.Contains("layui-btn-normal") || helper.Css.Contains("layui-btn-warm") 
-                || helper.Css.Contains("layui-btn-danger") || helper.Css.Contains("layui-btn-disabled"));
+                || helper.Css.Contains("layui-btn-danger") || helper.Css.Contains("layui-btn-disabled") 
+                || helper.Css.Contains("layui-btn-default"));
             var hasSizeCss = !string.IsNullOrEmpty(helper.Css) && (helper.Css.Contains("layui-btn-lg")
                 || helper.Css.Contains("layui-btn-sm") || helper.Css.Contains("layui-btn-xs"));
 
-            if (!string.IsNullOrEmpty(_layuiOption.ActionTagTheme) && !hasThemeCss)
+            if (!hasThemeCss && !string.IsNullOrEmpty(_layuiOption.ActionTagTheme))
             {
                 cls += $" {_layuiOption.ActionTagTheme}";
             }
@@ -42,8 +43,13 @@ namespace Vino.Core.Extensions.Layui
             {
                 cls += $" {helper.Css}";
             }
+            var type = "button";
+            if (context.AllAttributes.TryGetAttribute("type", out TagHelperAttribute attr))
+            {
+                type = attr.Value.ToString();
+            }
             output.Attributes.SetAttribute("class", cls);
-            output.Attributes.SetAttribute("type", "button");
+            output.Attributes.SetAttribute("type", type);
             output.Attributes.SetAttribute("title", helper.Title ?? helper.Text ?? "");
 
             var content = "";

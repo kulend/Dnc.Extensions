@@ -18,5 +18,12 @@ namespace Vino.Core.Extensions.Layui
         public string ActionTagSize { set; get; }
 
         public string ActionTagTheme { set; get; }
+
+        /// <summary>
+        /// tips（吸附层）
+        /// alert（对话框）
+        /// msg（默认）
+        /// </summary>
+        public string VerifyType { set; get; }
     }
 }
