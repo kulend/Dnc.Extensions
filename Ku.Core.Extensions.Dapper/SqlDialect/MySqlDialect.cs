@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Ku.Core.Extensions.Dapper.SqlDialect
@@ -21,7 +22,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
         /// </summary>
         public override string GetPageQuerySql<TEntity>(int page, int rows, string orderBy)
         {
-            var tableName = GetTableNameWithSchema<TEntity>();
+            var tableName = FormatTableName<TEntity>();
             //SELECT * FROM table ORDER BY id LIMIT 1000,10;
             return $"SELECT * FROM {tableName} ORDER BY {orderBy} LIMIT 1000,10";
         }
