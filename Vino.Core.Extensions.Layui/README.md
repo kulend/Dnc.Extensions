@@ -5,12 +5,17 @@
 </p>
 
 * 版本发布
+	<p>[2018.05.09] 版本 2.1.0.1</p>
 	<p>[2017.08.29] 版本 2.0.2.1</p>
     <p>[2017.08.28] 版本 2.0.2.0</p>
 
 * 安装方法
-<br/> PM> Install-Package Vino.Core.Extensions.Layui -Version 2.0.2.1
-<br/> dotnet add package Vino.Core.Extensions.Layui --version 2.0.2.1
+	先安装Vino.Core.Extensions.Ui
+<br/> PM> Install-Package Vino.Core.Extensions.Ui -Version 2.1.0.1
+<br/> dotnet add package Vino.Core.Extensions.Ui --version 2.1.0.1
+	再安装Vino.Core.Extensions.Layui
+<br/> PM> Install-Package Vino.Core.Extensions.Layui -Version 2.1.0.1
+<br/> dotnet add package Vino.Core.Extensions.Layui --version 2.1.0.1
 
 * 使用方法
     1. 在Startup的ConfigureServices方法中
@@ -37,22 +42,47 @@
         /// <summary>
         /// 名称
         /// </summary>
-        [Required, MaxLength(20)]
-        [Display(Name = "名称")]
+        [Required, MaxLength(20), MinLength(5)]
+        [Display(Name = "名称", Description = "附加说明文字")]
+        [RegularExpression(@"^[a-zA-Z''-'\s]{1,40}$", ErrorMessage = "输入的名称不符合规则")]
         public string Name { get; set; }
 
         /// <summary>
-        /// 地址
+        /// 名称
+        /// </summary>
+        [Required]
+        [Display(Name = "手机号")]
+        [DataType(DataType.PhoneNumber)] //也可以为[DataType("mobile")]
+        public string Mobile { get; set; }
+
+        /// <summary>
+        /// 链接
         /// </summary>
         [MaxLength(256)]
         [Display(Name = "链接")]
+        [DataType(DataType.Url)]
         public string Url { get; set; }
+
+        /// <summary>
+        /// Email
+        /// </summary>
+        [MaxLength(256)]
+        [Display(Name = "Email")]
+        [DataType(DataType.EmailAddress)]
+        public string Email { get; set; }
 
         /// <summary>
         /// 序号
         /// </summary>
         [Display(Name = "序号", Prompt ="0~9999")]
         public int OrderIndex { get; set; } = 0;
+
+        /// <summary>
+        /// 序号
+        /// </summary>
+        [Display(Name = "数字", Prompt = "0~9999")]
+        [Range(-1, 999.05)]
+        public decimal Dec { get; set; } = 0;
 
         /// <summary>
         /// 开关
@@ -107,25 +137,69 @@
 
     4. 在form中使用@Html.InputFor，如
     ```c#
-        @using (Html.BeginForm<DemoModel>("Save"))
-        {
-            @Html.InputFor(x => x.Id)
-            @Html.InputFor(x => x.Name)
-            @Html.InputFor(x => x.Url)
-            @Html.InputFor(x => x.OrderIndex)
-            @Html.InputFor(x => x.Switch)
-            @Html.InputFor(x => x.Date)
-            @Html.InputFor(x => x.Year)
-            @Html.InputFor(x => x.Month)
-            @Html.InputFor(x => x.Sex)
-            @Html.InputFor(x => x.Remark)
-			@Html.ActionsForSubmitAndReset()
-        }
+                @using (Html.BeginForm<DemoModel>("#"))
+                {
+                    @Html.InputFor(x => x.Id)
+                    @Html.InputFor(x => x.Name, x => x.Mobile)
+                    @Html.InputFor(x => x.Url, x => x.Email)
+                    @Html.InputFor(x => x.OrderIndex, x => x.Dec)
+                    @Html.InputFor(x => x.Sex)
+                    @Html.InputFor(x => x.Switch, x => x.Date)
+                    @Html.InputFor(x => x.Year, x => x.Month)
+                    @Html.InputFor(x => x.Remark)
+                    @Html.ActionsForSubmitAndReset()
+                }
     ```
+    5. 在form中使用@Html.ShowFor，如
+    ```c#
+                @using (Html.BeginForm<DemoModel>("#"))
+                {
+                    @Html.InputFor(x => x.Id)
+                    @Html.ShowFor(x => x.Name, x => x.Mobile)
+                    @Html.ShowFor(x => x.Url, x => x.Email)
+                    @Html.ShowFor(x => x.OrderIndex, x => x.Dec)
+                    @Html.ShowFor(x => x.Sex)
+                    @Html.ShowFor(x => x.Switch, x => x.Date)
+                    @Html.ShowFor(x => x.Year, x => x.Month)
+                    @Html.ShowFor(x => x.Remark)
+                }
+    ```
+	使用ShowFor需要在页面添加以下css代码：
+    ```css
+    <style>
+        .layui-form-item .layui-form-label-show {
+            float: left;
+            display: block;
+            padding: 9px 15px;
+            font-weight: 400;
+            text-align: left;
+            color: #808080;
+        }
+
+        .layui-form-item .layui-input-block .layui-form-label-show {
+            width: 85%;
+        }
+    </style>
+    ```
+
+	6.表单验证
+	Model字段添加特定的特性或指定DataType即可实现表单自动验证。使用验证页面需引入form.verify.js，文件在Tests/Vino.Core.Extensions.Layui.Test/wwwroot/js目录下有。
+	<br>Required特性：不能为空
+	<br>MaxLength特性：最大长度验证
+	<br>MinLength特性：最小长度验证
+	<br>StringLength特性：最大和最小长度验证
+	<br>Range特性：最大和最小值验证
+	<br>DataType(DataType.PhoneNumber)或DataType("mobile")：手机号验证
+	<br>DataType(DataType.Url)：网址验证
+	<br>DataType(DataType.EmailAddress)或DataType("email")：Email验证
+	<br>字段类型为int：整数验证
+	<br>字段类型为decimal：数字验证
+	<br>RegularExpression特性：自定义正则表达式验证，如果[RegularExpression(@"^[a-zA-Z''-'\s]{1,40}$", ErrorMessage = "输入的名称不符合规则")]
+
     Ok, 是不是很简单？
 
 * 其他说明
-    1. 设定字段类型是int或short，这时input标签会添加input-length-num样式css，如果是字符串字段，设定MaxLengthAttribute，长度>=50，添加样式"input-length-long",如果长度20~50，添加样式"input-length-middle"，如果长度小于20，则添加样式"input-length-short"。用户可在css文件中自定义文本框宽度。
+    1. 去掉之前版本中的和长度相关css。
 
     2. bool型字段默认会渲染成switch，lay-text需要这样设置：
     ```c#

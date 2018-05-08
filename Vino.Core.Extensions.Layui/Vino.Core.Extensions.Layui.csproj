@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <Version>2.1.0.0</Version>
+    <Version>2.1.0.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>kulend@qq.com</Authors>
     <Company>kulend@qq.com</Company>
@@ -15,7 +15,8 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>vino layui .netcore</PackageTags>
     <PackageReleaseNotes>如果您的.net core 2.0项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。</PackageReleaseNotes>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <AssemblyVersion>2.1.0.1</AssemblyVersion>
+    <FileVersion>2.1.0.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -86,14 +86,14 @@
             <div style="padding: 15px;">
                 @using (Html.BeginForm<DemoModel>("#"))
                 {
-            @Html.InputFor(x => x.Id)
-            @Html.ShowFor(x => x.Name, x => x.Mobile)
-            @Html.ShowFor(x => x.Url, x => x.Email)
-            @Html.ShowFor(x => x.OrderIndex, x => x.Dec)
-            @Html.ShowFor(x => x.Sex)
-            @Html.ShowFor(x => x.Switch, x => x.Date)
-            @Html.ShowFor(x => x.Year, x => x.Month)
-            @Html.ShowFor(x => x.Remark)
+                    @Html.InputFor(x => x.Id)
+                    @Html.ShowFor(x => x.Name, x => x.Mobile)
+                    @Html.ShowFor(x => x.Url, x => x.Email)
+                    @Html.ShowFor(x => x.OrderIndex, x => x.Dec)
+                    @Html.ShowFor(x => x.Sex)
+                    @Html.ShowFor(x => x.Switch, x => x.Date)
+                    @Html.ShowFor(x => x.Year, x => x.Month)
+                    @Html.ShowFor(x => x.Remark)
                 }
             </div>
         </div>
