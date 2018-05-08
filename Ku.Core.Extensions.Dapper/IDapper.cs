@@ -1,12 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Ku.Core.Extensions.Dapper
 {
-    public interface IDapper
+    public interface IDapper : IDisposable
     {
+        #region 事务
+
+        ITransation BeginTrans();
+
+        ITransation BeginTrans(IsolationLevel il);
+
+        void Commit();
+
+        void Rollback();
+
+        #endregion
 
         #region 查询
 
@@ -48,7 +60,7 @@ namespace Ku.Core.Extensions.Dapper
 
         int Update<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class;
 
-        int UpdateExt(string table, string tableSchema, dynamic data, dynamic condition);
+        int UpdateExt(string table, string tableSchema, dynamic data, dynamic where);
 
         Task<int> UpdateAsync<TEntity>(TEntity entity) where TEntity : class;
 
@@ -56,15 +68,23 @@ namespace Ku.Core.Extensions.Dapper
 
         Task<int> UpdateAsync<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class;
 
-        Task<int> UpdateExtAsync(string table, string tableSchema, dynamic data, dynamic condition);
+        Task<int> UpdateExtAsync(string table, string tableSchema, dynamic data, dynamic where);
 
         #endregion
 
-        #region 删除
+        #region 删除&逻辑删除
 
-        int Delete<TEntity>(dynamic condition) where TEntity : class;
+        int Delete<TEntity>(dynamic where) where TEntity : class;
 
-        Task<int> DeleteAsync<TEntity>(dynamic condition) where TEntity : class;
+        Task<int> DeleteAsync<TEntity>(dynamic where) where TEntity : class;
+
+        #endregion
+
+        #region 逻辑恢复
+
+        int Restore<TEntity>(dynamic where) where TEntity : class;
+
+        Task<int> RestoreAsync<TEntity>(dynamic where) where TEntity : class;
 
         #endregion
     }

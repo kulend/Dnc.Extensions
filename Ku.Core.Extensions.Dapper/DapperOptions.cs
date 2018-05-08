@@ -11,6 +11,8 @@ namespace Ku.Core.Extensions.Dapper
         public Func<IDbConnection> DbConnection { get; set; }
 
         public ISqlDialect SqlDialect { set; get; }
+
+        public int? Timeout { set; get; } = null;
     }
 
     public enum DbType

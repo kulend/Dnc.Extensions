@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             HtmlEncoder htmlEncoder,
             UrlEncoder urlEncoder,
             ExpressionTextCache expressionTextCache,
-            IOptions<LayuiOption> layuiOption) : 
+            IOptions<LayuiOption> layuiOption) :
             base(htmlGenerator, viewEngine, metadataProvider, bufferScope, htmlEncoder, urlEncoder, expressionTextCache)
         {
             this._htmlGenerator = htmlGenerator;
@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 CanRenderAtEndOfForm = true
             };
 
-            var tagBuilder = _htmlGenerator.GenerateForm(ViewContext, actionName, controllerName, routeValues, 
+            var tagBuilder = _htmlGenerator.GenerateForm(ViewContext, actionName, controllerName, routeValues,
                 HtmlHelper.GetFormMethodString(method), htmlAttributes);
             if (tagBuilder != null)
             {
@@ -161,7 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         if (submit.IsDefault)
                         {
                             submit.Text = _layuiOption.Submit.Text;
-                            submit.Css  = _layuiOption.Submit.Css;
+                            submit.Css = _layuiOption.Submit.Css;
                             submit.Action = _layuiOption.Submit.Action;
                             submit.Icon = _layuiOption.Submit.Icon;
                         }
@@ -202,52 +202,61 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
         public IHtmlContent LayuiInputFor<TResult>(Expression<Func<TModel, TResult>> expression, object htmlAttributes)
         {
+            return RenderItem(expression, false, null, htmlAttributes);
+        }
+
+        public IHtmlContent LayuiInputFor<TResult1, TResult2>(Expression<Func<TModel, TResult1>> expr1, Expression<Func<TModel, TResult2>> expr2)
+        {
+            var tag = new TagBuilder("div");
+            tag.AddCssClass("layui-form-item");
+
+            tag.InnerHtml.AppendHtml(RenderItem(expr1, true, null, null));
+            tag.InnerHtml.AppendHtml(RenderItem(expr2, true, null, null));
+            return tag;
+        }
+
+        public IHtmlContent LayuiShowFor<TResult>(Expression<Func<TModel, TResult>> expression, string dataType, object htmlAttributes)
+        {
+            return RenderItemShow(expression, false, dataType, htmlAttributes);
+        }
+
+        public IHtmlContent LayuiShowFor<TResult1, TResult2>(Expression<Func<TModel, TResult1>> expr1, Expression<Func<TModel, TResult2>> expr2)
+        {
+            var tag = new TagBuilder("div");
+            tag.AddCssClass("layui-form-item");
+
+            tag.InnerHtml.AppendHtml(RenderItemShow(expr1, true, null, null));
+            tag.InnerHtml.AppendHtml(RenderItemShow(expr2, true, null, null));
+            return tag;
+        }
+
+        #region Input
+
+        private IHtmlContent RenderItem<TResult>(Expression<Func<TModel, TResult>> expression, bool inline, string dataType, object htmlAttributes)
+        {
             if (expression == null)
             {
-                throw new ArgumentNullException(nameof(expression));
+                return new HtmlString("");
             }
 
             var modelExplorer = GetModelExplorer(expression);
             var metadata = modelExplorer.Metadata;
             var name = GetExpressionName(expression);
-
             Type type = GetRealType(modelExplorer.ModelType);
 
             IHtmlContent content = new HtmlString(name);
-            var dataTypeName = metadata.DataTypeName;
-            if (string.IsNullOrEmpty(dataTypeName))
-            {
-                if (type == typeof(bool))
-                {
-                    dataTypeName = "switch";
-                }
-                else if (metadata.IsEnum)
-                {
-                    dataTypeName = "enum_radio";
-                }
-                else if (type == typeof(DateTime))
-                {
-                    dataTypeName = "datetime";
-                }
-                else
-                {
-                    dataTypeName = "text";
-                }
-            }
-            
-            switch (dataTypeName.ToLower())
+            var dataTypeName = string.IsNullOrEmpty(dataType) ? GetDataTypeName(type, metadata) : dataType.ToLower();
+
+            switch (dataTypeName)
             {
                 case "text":
-                    content = RenderTextBox(name, modelExplorer, metadata);
+                    content = RenderTextBox(name, modelExplorer, dataTypeName, inline, htmlAttributes);
                     break;
                 case "hidden":
                     content = RenderHidden(name, modelExplorer, metadata);
                     break;
-                case "password":
-                    content = RenderPassword(name, modelExplorer, metadata);
-                    break;
                 case "switch":
-                    content = RenderSwitch(name, modelExplorer, metadata, htmlAttributes);
+                    content = RenderSwitch(name, modelExplorer, metadata, inline, htmlAttributes);
                     break;
                 case "multilinetext":
                 case "textarea":
@@ -261,141 +270,143 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 case "year":
                 case "month":
                 case "time":
-                    content = RenderDateTime(name, modelExplorer, metadata);
+                    content = RenderDateTime(name, modelExplorer, inline, htmlAttributes);
                     break;
-            }
-
-            return content;
-        }
-
-        public IHtmlContent LayuiShowFor<TResult>(Expression<Func<TModel, TResult>> expression)
-        {
-            if (expression == null)
-            {
-                throw new ArgumentNullException(nameof(expression));
-            }
-
-            var modelExplorer = GetModelExplorer(expression);
-            var metadata = modelExplorer.Metadata;
-            var name = GetExpressionName(expression);
-
-            Type type = GetRealType(modelExplorer.ModelType);
-
-            IHtmlContent content = new HtmlString(name);
-            var dataTypeName = metadata.DataTypeName;
-            if (string.IsNullOrEmpty(dataTypeName))
-            {
-                if (type == typeof(bool))
-                {
-                    dataTypeName = "switch";
-                }
-                else if (metadata.IsEnum)
-                {
-                    dataTypeName = "enum_radio";
-                }
-                else if (type == typeof(DateTime))
-                {
-                    dataTypeName = "datetime";
-                }
-                else
-                {
-                    dataTypeName = "text";
-                }
-            }
-
-            switch (dataTypeName.ToLower())
-            {
-                case "text":
-                    content = RenderLable(name, modelExplorer, metadata);
-                    break;
-                case "hidden":
-                    content = RenderHidden(name, modelExplorer, metadata);
-                    break;
+                case "url":
                 case "password":
-                    content = RenderPassword(name, modelExplorer, metadata);
-                    break;
-                case "switch":
-                    content = RenderSwitchShow(name, modelExplorer, metadata);
-                    break;
-                case "multilinetext":
-                case "textarea":
-                    content = RenderTextareaShow(name, modelExplorer, metadata);
-                    break;
-                case "enum_radio":
-                    content = RenderEnumRadioShow(name, modelExplorer, metadata);
-                    break;
-                case "datetime":
-                case "date":
-                case "year":
-                case "month":
-                case "time":
-                    content = RenderDateTimeShow(name, modelExplorer, metadata);
-                    break;
-                case "image":
-                case "imageurl":
-                    content = RenderImageShow(name, modelExplorer, metadata);
+                case "email":
+                case "emailaddress":
+                default:
+                    content = RenderTextBox(name, modelExplorer, dataTypeName, inline, htmlAttributes);
                     break;
             }
 
             return content;
         }
 
-        #region Input
-
-        private IHtmlContent RenderTextBox(string name, ModelExplorer modelExplorer, ModelMetadata metadata, params KeyValuePair<string, string>[] attrs)
+        private IHtmlContent RenderTextBox(string name, ModelExplorer modelExplorer, string dataType, bool inline, object htmlAttributes)
         {
+            ModelMetadata metadata = modelExplorer.Metadata;
+
             var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
+            tag.AddCssClass(inline ? "layui-inline" : "layui-form-item");
 
             var displayName = metadata.GetDisplayName();
             var isRequired = metadata.IsRequired;
             var placeholder = metadata.Placeholder;
 
-            //取得最大长度
-            var maxLength = 30;
-            var maxLengthAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(MaxLengthAttribute));
-            if (maxLengthAttribute != null)
-            {
-                maxLength = (maxLengthAttribute as MaxLengthAttribute).Length;
-            }
-            var isNumber = metadata.ModelType == typeof(Int32) || metadata.ModelType == typeof(Int16);
+            var isInteger = metadata.ModelType == typeof(Int32) || metadata.ModelType == typeof(Int16);
+            var isDecimal = metadata.ModelType == typeof(decimal) || metadata.ModelType == typeof(float) || metadata.ModelType == typeof(double);
             var input = new TagBuilder("input");
 
             //长度标签
-            var length = "";
-            if (isNumber)
-            {
-                length = "num";
-            }
-            else if (maxLength >= 50)
-            {
-                length = "long";
-            }
-            else if (maxLength >= 20)
-            {
-                length = "middle";
-            }
-            else
-            {
-                length = "short";
-            }
+            //var length = "";
+            //if (isNumber)
+            //{
+            //    length = "num";
+            //}
+            //else if (maxLength >= 50)
+            //{
+            //    length = "long";
+            //}
+            //else if (maxLength >= 20)
+            //{
+            //    length = "middle";
+            //}
+            //else
+            //{
+            //    length = "short";
+            //}
 
             input.AddCssClass("layui-input");
             input.TagRenderMode = TagRenderMode.SelfClosing;
-            input.MergeAttribute("type", InputType.Text.ToString());
+            if ("password".Equals(dataType))
+            {
+                input.MergeAttribute("type", InputType.Password.ToString());
+            }
+            else
+            {
+                input.MergeAttribute("type", InputType.Text.ToString());
+            }
             input.MergeAttribute("name", name, replaceExisting: true);
             if (!string.IsNullOrEmpty(placeholder))
             {
                 input.MergeAttribute("placeholder", placeholder);
             }
-            if (isRequired)
+
+            //最大长度
+            var maxLength = 0;
+            var minLength = 0;
+            var stringLengthAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(StringLengthAttribute));
+            if (stringLengthAttribute != null)
             {
-                input.MergeAttribute("lay-verify", "required");
+                maxLength = (stringLengthAttribute as StringLengthAttribute).MaximumLength;
+                minLength = (stringLengthAttribute as StringLengthAttribute).MinimumLength;
+            }
+            var maxLengthAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(MaxLengthAttribute));
+            if (maxLengthAttribute != null)
+            {
+                var vmax = (maxLengthAttribute as MaxLengthAttribute).Length;
+                if (maxLength > vmax || maxLength == 0) maxLength = vmax;
+            }
+            var minLengthAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(MinLengthAttribute));
+            if (minLengthAttribute != null)
+            {
+                var vmin = (minLengthAttribute as MinLengthAttribute).Length;
+                if (minLength < vmin) minLength = vmin;
             }
 
-            if (!isNumber)
+            if (isInteger) maxLength = 11;
+            if (isDecimal) maxLength = 32;
+            if ("phonenumber".Equals(dataType) || "mobile".Equals(dataType)) maxLength = 11;
+            input.MergeAttribute("maxlength", maxLength.ToString());
+
+            //表单验证规则
+            var verifys = new List<string>();
+            if (isRequired && !isInteger && !isDecimal) verifys.Add("required");
+            if (isInteger) verifys.Add("integer");
+            if (isDecimal) verifys.Add("number");
+            if ("phonenumber".Equals(dataType) || "mobile".Equals(dataType)) verifys.Add("phone");
+            if ("url".Equals(dataType)) verifys.Add("url");
+            if ("email".Equals(dataType) || "emailaddress".Equals(dataType)) verifys.Add("email");
+
+            if (isInteger || isDecimal)
             {
-                input.MergeAttribute("maxlength", maxLength.ToString());
+                var rangeAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(RangeAttribute));
+                if (rangeAttribute != null)
+                {
+                    input.MergeAttribute("data-val-range-min", (rangeAttribute as RangeAttribute).Minimum.ToString());
+                    input.MergeAttribute("data-val-range-max", (rangeAttribute as RangeAttribute).Maximum.ToString());
+                }
+            }
+            else
+            {
+                if (maxLength != 0 && minLength != 0)
+                {
+                    input.MergeAttribute("data-val-length-min", minLength.ToString());
+                    input.MergeAttribute("data-val-length-max", maxLength.ToString());
+                    verifys.Add("stringlength");
+                }
+            }
+            //正则表达式验证
+            var regularExpressionAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(RegularExpressionAttribute));
+            if (regularExpressionAttribute != null)
+            {
+                var regular = regularExpressionAttribute as RegularExpressionAttribute;
+                verifys.Add("regular");
+
+                input.MergeAttribute("data-val-regular-pattern", regular.Pattern);
+                input.MergeAttribute("data-val-regular-msg", regular.ErrorMessage);
+            }
+
+            if (verifys.Any())
+            {
+                input.MergeAttribute("lay-verify", string.Join('|', verifys.ToArray()));
+            }
+
+            if (!string.IsNullOrEmpty(_layuiOption.VerifyType))
+            {
+                input.MergeAttribute("lay-verType", _layuiOption.VerifyType);
             }
 
             if (modelExplorer.Model != null)
@@ -403,24 +414,15 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 input.MergeAttribute("value", modelExplorer.Model.ToString());
             }
 
-            if (attrs != null && attrs.Length > 0)
-            {
-                foreach (var attr in attrs)
-                {
-                    input.MergeAttribute(attr.Key, attr.Value);
-                }
-            }
-
-            bool isInline = !string.IsNullOrEmpty(metadata.Description);
+            MergeHtmlAttributes(input, htmlAttributes);
 
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
-            tag.InnerHtml.AppendHtml($"<div class=\"{(isInline ? "layui-input-inline" : "layui-input-block")} {length}\">");
+            tag.InnerHtml.AppendHtml($"<div class=\"layui-input-inline\">");
             tag.InnerHtml.AppendHtml(input);
             tag.InnerHtml.AppendHtml("</div>");
-            if (!string.IsNullOrEmpty(metadata.Description))
-            {
-                tag.InnerHtml.AppendHtml($"<div class=\"layui-form-mid layui-word-aux\">{metadata.Description}</div>");
-            }
+
+            RenderDescription(tag, metadata);
+
             return tag;
         }
 
@@ -439,10 +441,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return input;
         }
 
-        private IHtmlContent RenderSwitch(string name, ModelExplorer modelExplorer, ModelMetadata metadata, object htmlAttributes)
+        private IHtmlContent RenderSwitch(string name, ModelExplorer modelExplorer, ModelMetadata metadata, bool inline, object htmlAttributes)
         {
             var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
+            tag.AddCssClass(inline ? "layui-inline" : "layui-form-item");
 
             var displayName = metadata.GetDisplayName();
             var placeholder = metadata.Placeholder;
@@ -477,7 +479,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             tag.InnerHtml.AppendHtml("<div class=\"layui-input-inline\">");
             tag.InnerHtml.AppendHtml(input);
             tag.InnerHtml.AppendHtml("</div>");
-
+            if (!string.IsNullOrEmpty(metadata.Description))
+            {
+                tag.InnerHtml.AppendHtml($"<div class=\"layui-form-mid layui-word-aux\">{metadata.Description}</div>");
+            }
             return tag;
         }
 
@@ -519,55 +524,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
             tag.InnerHtml.AppendHtml("<div class=\"layui-input-block long\">");
-            tag.InnerHtml.AppendHtml(input);
-            tag.InnerHtml.AppendHtml("</div>");
-            return tag;
-        }
-
-        private IHtmlContent RenderPassword(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
-        {
-            var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
-
-            var displayName = metadata.GetDisplayName();
-            var isRequired = metadata.IsRequired;
-            var placeholder = metadata.Placeholder;
-
-            //取得最大长度
-            var maxLength = 20;
-            var maxLengthAttribute = metadata.ValidatorMetadata.SingleOrDefault(x => x.GetType() == typeof(MaxLengthAttribute));
-            if (maxLengthAttribute != null)
-            {
-                maxLength = (maxLengthAttribute as MaxLengthAttribute).Length;
-            }
-
-            var input = new TagBuilder("input");
-
-            //长度标签
-            input.AddCssClass("input-length-short");
-
-            input.AddCssClass("layui-input");
-            input.TagRenderMode = TagRenderMode.SelfClosing;
-            input.MergeAttribute("type", InputType.Password.ToString());
-            input.MergeAttribute("name", name, replaceExisting: true);
-            if (!string.IsNullOrEmpty(placeholder))
-            {
-                input.MergeAttribute("placeholder", placeholder);
-            }
-            if (isRequired)
-            {
-                input.MergeAttribute("lay-verify", "required");
-            }
-
-            input.MergeAttribute("maxlength", maxLength.ToString());
-
-            if (modelExplorer.Model != null)
-            {
-                input.MergeAttribute("value", modelExplorer.Model.ToString());
-            }
-
-            tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
-            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block\">");
             tag.InnerHtml.AppendHtml(input);
             tag.InnerHtml.AppendHtml("</div>");
             return tag;
@@ -620,10 +576,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return tag;
         }
 
-        private IHtmlContent RenderDateTime(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
+        private IHtmlContent RenderDateTime(string name, ModelExplorer modelExplorer, bool inline, object htmlAttributes)
         {
+            ModelMetadata metadata = modelExplorer.Metadata;
             var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
+            tag.AddCssClass(inline ? "layui-inline" : "layui-form-item");
 
             var displayName = metadata.GetDisplayName();
             var placeholder = metadata.Placeholder;
@@ -687,10 +644,14 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 }
             }
 
+            MergeHtmlAttributes(input, htmlAttributes);
+
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
             tag.InnerHtml.AppendHtml("<div class=\"layui-input-inline\">");
             tag.InnerHtml.AppendHtml(input);
             tag.InnerHtml.AppendHtml("</div>");
+
+            RenderDescription(tag, metadata);
 
             return tag;
         }
@@ -699,40 +660,117 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
         #region Show
 
-        private IHtmlContent RenderLable(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
+        private IHtmlContent RenderItemShow<TResult>(Expression<Func<TModel, TResult>> expression, bool inline, string dataType, object htmlAttributes)
         {
+            if (expression == null)
+            {
+                return new HtmlString("");
+            }
+
+            var modelExplorer = GetModelExplorer(expression);
+            var metadata = modelExplorer.Metadata;
+            var name = GetExpressionName(expression);
+            Type type = GetRealType(modelExplorer.ModelType);
+
+            IHtmlContent content = null;
+            var dataTypeName = string.IsNullOrEmpty(dataType) ? GetDataTypeName(type, metadata) : dataType.ToLower();
+
+            switch (dataTypeName)
+            {
+                case "text":
+                    content = RenderLable(modelExplorer, inline);
+                    break;
+                case "hidden":
+                    content = new HtmlString("");
+                    break;
+                case "password":
+                    content = new HtmlString("");
+                    break;
+                case "switch":
+                    content = RenderSwitchShow(name, modelExplorer, metadata, inline, htmlAttributes);
+                    break;
+                case "multilinetext":
+                case "textarea":
+                    content = RenderTextareaShow(name, modelExplorer, metadata);
+                    break;
+                case "enum_radio":
+                    content = RenderEnumRadioShow(modelExplorer, inline);
+                    break;
+                case "datetime":
+                case "date":
+                case "year":
+                case "month":
+                case "time":
+                    content = RenderDateTimeShow(name, modelExplorer, metadata, inline);
+                    break;
+                case "image":
+                case "imageurl":
+                    content = RenderImageShow(name, modelExplorer, metadata);
+                    break;
+                default:
+                    content = RenderLable(modelExplorer, inline);
+                    break;
+            }
+
+            return content;
+        }
+
+        private IHtmlContent RenderLable(ModelExplorer modelExplorer, bool inline)
+        {
+            ModelMetadata metadata = modelExplorer.Metadata;
+
             var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
+            tag.AddCssClass(inline ? "layui-inline" : "layui-form-item");
 
             var displayName = metadata.GetDisplayName();
 
-            var lable = new TagBuilder("label");
-            lable.AddCssClass("layui-form-label-show");
+            var label = new TagBuilder("label");
+            label.AddCssClass("layui-form-label-show");
             if (modelExplorer.Model != null)
             {
-                lable.InnerHtml.Append(modelExplorer.Model.ToString());
+                var formate = metadata.DisplayFormatString;
+                if (!string.IsNullOrEmpty(formate))
+                {
+                    Type type = GetRealType(modelExplorer.ModelType);
+                    switch (modelExplorer.Model)
+                    {
+                        case int v:
+                            label.InnerHtml.Append(v.ToString(formate));
+                            break;
+                        case float v:
+                            label.InnerHtml.Append(v.ToString(formate));
+                            break;
+                        case decimal v:
+                            label.InnerHtml.Append(v.ToString(formate));
+                            break;
+                        default:
+                            label.InnerHtml.Append(modelExplorer.Model.ToString());
+                            break;
+                    }
+                }
+                else
+                {
+                    label.InnerHtml.Append(modelExplorer.Model.ToString());
+                }
             }
 
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
-            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block\">");
-            tag.InnerHtml.AppendHtml(lable);
+            tag.InnerHtml.AppendHtml($"<div class=\"{(inline ? "layui-input-inline" : "layui-input-block")}\">");
+            tag.InnerHtml.AppendHtml(label);
             tag.InnerHtml.AppendHtml("</div>");
             return tag;
         }
 
-        private IHtmlContent RenderDateTimeShow(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
+        private IHtmlContent RenderDateTimeShow(string name, ModelExplorer modelExplorer, ModelMetadata metadata, bool inline)
         {
             var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
+            tag.AddCssClass(inline ? "layui-inline" : "layui-form-item");
 
             var displayName = metadata.GetDisplayName();
             var placeholder = metadata.Placeholder;
 
             var label = new TagBuilder("label");
             label.AddCssClass("layui-form-label-show");
-
-
-            metadata.DataTypeName.ToLower();
 
             if (modelExplorer.Model != null)
             {
@@ -757,10 +795,12 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return tag;
         }
 
-        private IHtmlContent RenderEnumRadioShow(string name, ModelExplorer modelExplorer, ModelMetadata metadata)
+        private IHtmlContent RenderEnumRadioShow(ModelExplorer modelExplorer, bool inline)
         {
+            ModelMetadata metadata = modelExplorer.Metadata;
+
             var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
+            tag.AddCssClass(inline ? "layui-inline" : "layui-form-item");
 
             if (!metadata.IsEnum)
             {
@@ -769,7 +809,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var displayName = metadata.GetDisplayName();
 
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
-            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block\">");
+            tag.InnerHtml.AppendHtml($"<div class=\"{(inline ? "layui-input-inline" : "layui-input-block")}\">");
 
             string value = "";
             if (modelExplorer.Model != null)
@@ -790,10 +830,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return tag;
         }
 
-        private IHtmlContent RenderSwitchShow(string name, ModelExplorer modelExplorer, ModelMetadata metadata, params KeyValuePair<string, string>[] attrs)
+        private IHtmlContent RenderSwitchShow(string name, ModelExplorer modelExplorer, ModelMetadata metadata, bool inline, object htmlAttributes)
         {
             var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
+            tag.AddCssClass(inline ? "layui-inline" : "layui-form-item");
 
             var displayName = metadata.GetDisplayName();
             var placeholder = metadata.Placeholder;
@@ -813,18 +853,12 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var text = modelChecked ? texts[0] : texts[1];
 
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
-            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block\">");
+            tag.InnerHtml.AppendHtml($"<div class=\"{(inline ? "layui-input-inline" : "layui-input-block")}\">");
 
             var lable = new TagBuilder("label");
             lable.AddCssClass("layui-form-label-show");
 
-            if (attrs != null && attrs.Length > 0)
-            {
-                foreach (var attr in attrs)
-                {
-                    lable.MergeAttribute(attr.Key, attr.Value);
-                }
-            }
+            MergeHtmlAttributes(lable, htmlAttributes);
 
             lable.InnerHtml.Append(text);
             tag.InnerHtml.AppendHtml(lable);
@@ -935,6 +969,49 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 {
                     tag.MergeAttribute(attr.Key, JsonSerialize(attr.Value), replaceExisting: true);
                 }
+            }
+        }
+
+        private string GetDataTypeName(Type type, ModelMetadata metadata)
+        {
+            string dataTypeName = metadata.DataTypeName;
+
+            if (string.IsNullOrEmpty(dataTypeName))
+            {
+                if (type == typeof(bool))
+                {
+                    dataTypeName = "switch";
+                }
+                else if (metadata.IsEnum)
+                {
+                    dataTypeName = "enum_radio";
+                }
+                else if (type == typeof(DateTime))
+                {
+                    dataTypeName = "datetime";
+                }
+                else
+                {
+                    dataTypeName = "text";
+                }
+            }
+            return dataTypeName.ToLower();
+        }
+
+        private void RenderDescription(TagBuilder tag, ModelMetadata metadata)
+        {
+            var description = metadata.Description;
+            //if (string.IsNullOrEmpty(description) && metadata is ModelBinding.Metadata.DefaultModelMetadata md)
+            //{
+            //    var descAttribute = md.Attributes.Attributes.FirstOrDefault(x=>x.GetType() == typeof(System.ComponentModel.DescriptionAttribute));
+            //    if (descAttribute != null)
+            //    {
+            //        description = ((System.ComponentModel.DescriptionAttribute)descAttribute).Description;
+            //    }
+            //}
+            if (!string.IsNullOrEmpty(description))
+            {
+                tag.InnerHtml.AppendHtml($"<div class=\"layui-form-mid layui-word-aux\">{metadata.Description}</div>");
             }
         }
     }

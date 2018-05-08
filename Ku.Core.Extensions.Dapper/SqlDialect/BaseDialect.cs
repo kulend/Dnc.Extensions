@@ -82,12 +82,16 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             return FormatTableName(tableName, tableSchema);
         }
 
-        public virtual string FormatLogicalDeleteSql<TEntity>(string field, List<string> whereFields) where TEntity : class
+        public virtual string FormatLogicalDeleteRestoreSql<TEntity>(string field, List<string> whereFields = null, string whereSql = null) where TEntity : class
         {
             var where = "";
             if (whereFields != null && whereFields.Any())
             {
                 where = "WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p));
+            }
+            else if (!string.IsNullOrEmpty(whereSql))
+            {
+                where = "WHERE " + whereSql;
             }
             else
             {
@@ -138,11 +142,11 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
 
         public virtual string FormatCountSql<TEntity>(List<string> whereFields)
         {
-            var sql = new StringBuilder("SELECT COUNT(1) ");
+            var sql = new StringBuilder("SELECT COUNT(1)");
             sql.Append(" FROM " + FormatTableName<TEntity>());
             if (whereFields != null && whereFields.Any())
             {
-                sql.Append("WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
+                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
             }
             return sql.ToString();
         }

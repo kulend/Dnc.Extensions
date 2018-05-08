@@ -20,7 +20,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
         public override string FormatQuerySql<TEntity>(List<string> searchFields, List<string> whereFields, string order, bool isOne)
         {
             var sql = new StringBuilder("SELECT ");
-            if (searchFields != null || searchFields.Any())
+            if (searchFields != null && searchFields.Any())
             {
                 sql.Append(string.Join(",", searchFields.Select(p => QuoteFiled(p))));
             }
@@ -31,7 +31,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             sql.Append(" FROM " + FormatTableName<TEntity>());
             if (whereFields != null && whereFields.Any())
             {
-                sql.Append("WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
+                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
             }
 
             //order by
@@ -47,7 +47,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
         public override string FormatQueryPageSql<TEntity>(int page, int rows, List<string> searchFields, List<string> whereFields, string order)
         {
             var sql = new StringBuilder("SELECT ");
-            if (searchFields != null || searchFields.Any())
+            if (searchFields != null && searchFields.Any())
             {
                 sql.Append(string.Join(",", searchFields.Select(p => QuoteFiled(p))));
             }
@@ -58,7 +58,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             sql.Append(" FROM " + FormatTableName<TEntity>());
             if (whereFields != null && whereFields.Any())
             {
-                sql.Append("WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
+                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
             }
 
             //order by
