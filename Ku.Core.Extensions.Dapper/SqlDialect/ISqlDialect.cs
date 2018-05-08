@@ -24,5 +24,13 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
         string FormatLogicalDeleteSql<TEntity>(string field, List<string> whereFields) where TEntity : class;
 
         string FormatDeleteSql<TEntity>(List<string> whereFields) where TEntity : class;
+
+        string FormatQuerySql<TEntity>(List<string> searchFields, List<string> whereFields, string order, bool isOne) where TEntity : class;
+
+        string FormatOrderSql(string order);
+
+        string FormatCountSql<TEntity>(List<string> whereFields);
+
+        string FormatQueryPageSql<TEntity>(int page, int rows, List<string> searchFields, List<string> whereFields, string order) where TEntity : class;
     }
 }

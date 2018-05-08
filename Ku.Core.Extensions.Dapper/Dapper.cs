@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Ku.Core.Extensions.Dapper.Attributes;
-using Ku.Core.Extensions.Dapper.Sql;
 using Ku.Core.Extensions.Dapper.SqlDialect;
 using Microsoft.Extensions.Options;
 using System;
@@ -12,7 +11,6 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Ku.Core.Extensions.Dapper
@@ -33,36 +31,127 @@ namespace Ku.Core.Extensions.Dapper
             this._conn = _options.DbConnection();
             this._dialect = _options.SqlDialect;
         }
-        #region 主键查询
 
-        public TEntity QueryById<TEntity>(object id) where TEntity : class
+        #region 查询
+
+        public TEntity QueryOne<TEntity>(dynamic where, string order = null) where TEntity : class
         {
-            var pms = new Dictionary<string, object>();
-            var sss = ExpressionHelper.GetExpressionSql<User>(x=>x.AA.Equals("A") && x.BB == 1 && x.CC, ref pms);
-            var sql = $"SELECT * FROM {_dialect.FormatTableName<TEntity>()} WHERE Id=@Id";
-            return _conn.QueryFirstOrDefault<TEntity>(sql, new { Id = id });
+            var conditionObj = where as object;
+            var parameters = new DynamicParameters(where);
+            var whereFields = GetProperties(conditionObj);
+            var sql = _dialect.FormatQuerySql<TEntity>(null, whereFields, order, true);
+
+            return _conn.QueryFirstOrDefault<TEntity>(sql, parameters);
         }
 
-        public async Task<TEntity> QueryByIdAsync<TEntity>(object id) where TEntity : class
+        public async Task<TEntity> QueryOneAsync<TEntity>(dynamic where, string order = null) where TEntity : class
         {
-            var sql = $"SELECT * FROM {_dialect.FormatTableName<TEntity>()} WHERE Id=@Id";
-            return await _conn.QueryFirstOrDefaultAsync<TEntity>(sql, new { Id = id });
+            var conditionObj = where as object;
+            var parameters = new DynamicParameters(where);
+            var whereFields = GetProperties(conditionObj);
+            var sql = _dialect.FormatQuerySql<TEntity>(null, whereFields, order, true);
+
+            return await _conn.QueryFirstOrDefaultAsync<TEntity>(sql, parameters);
+        }
+
+        public IEnumerable<TEntity> QueryList<TEntity>(dynamic where, string order = null) where TEntity : class
+        {
+            var conditionObj = where as object;
+            var parameters = new DynamicParameters(where);
+            var whereFields = GetProperties(conditionObj);
+            var sql = _dialect.FormatQuerySql<TEntity>(null, whereFields, order, false);
+
+            return _conn.Query<TEntity>(sql, parameters);
+        }
+
+        public async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, string order = null) where TEntity : class
+        {
+            var conditionObj = where as object;
+            var parameters = new DynamicParameters(where);
+            var whereFields = GetProperties(conditionObj);
+            var sql = _dialect.FormatQuerySql<TEntity>(null, whereFields, order, false);
+
+            return await _conn.QueryAsync<TEntity>(sql, parameters);
+        }
+
+        public (int count, IEnumerable<TEntity> items) QueryPage<TEntity>(int page, int size, dynamic where, string order = null) where TEntity : class
+        {
+            var conditionObj = where as object;
+            var parameters = new DynamicParameters(where);
+            var whereFields = GetProperties(conditionObj);
+
+            var sql = _dialect.FormatCountSql<TEntity>(whereFields);
+            //取得总件数
+            var count = _conn.ExecuteScalar<int?>(sql, parameters).GetValueOrDefault();
+            if (count == 0)
+            {
+                return (0, new TEntity[] { });
+            }
+
+            if (count <= ((page - 1) * size))
+            {
+                return (count, new TEntity[] { });
+            }
+
+            var sql2 = _dialect.FormatQueryPageSql<TEntity>(page, size, null, whereFields, order);
+
+            var items = _conn.Query<TEntity>(sql, parameters);
+            return (count, items);
+        }
+
+        public async Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, dynamic where, string order = null) where TEntity : class
+        {
+            var conditionObj = where as object;
+            var parameters = new DynamicParameters(where);
+            var whereFields = GetProperties(conditionObj);
+
+            var sql = _dialect.FormatCountSql<TEntity>(whereFields);
+            //取得总件数
+            var count = (await _conn.ExecuteScalarAsync<int?>(sql, parameters)).GetValueOrDefault();
+            if (count == 0)
+            {
+                return (0, new TEntity[] { });
+            }
+
+            if (count <= ((page - 1) * size))
+            {
+                return (count, new TEntity[] { });
+            }
+
+            var sql2 = _dialect.FormatQueryPageSql<TEntity>(page, size, null, whereFields, order);
+
+            var items = await _conn.QueryAsync<TEntity>(sql, parameters);
+            return (count, items);
         }
 
         #endregion
 
-        #region 通用查询
+        #region 件数
 
-        public TEntity PageQuery<TEntity>(object id) where TEntity : class
+        public int QueryCount<TEntity>(dynamic where) where TEntity : class
         {
-            var sql = $"SELECT * FROM {_dialect.FormatTableName<TEntity>()} WHERE Id=@Id";
-            return null;
+            var conditionObj = where as object;
+            var parameters = new DynamicParameters(where);
+            var whereFields = GetProperties(conditionObj);
+            var sql = _dialect.FormatCountSql<TEntity>(whereFields);
+
+            return _conn.ExecuteScalar<int?>(sql, parameters).GetValueOrDefault();
+        }
+
+        public async Task<int> QueryCountAsync<TEntity>(dynamic where) where TEntity : class
+        {
+            var conditionObj = where as object;
+            var parameters = new DynamicParameters(where);
+            var whereFields = GetProperties(conditionObj);
+            var sql = _dialect.FormatCountSql<TEntity>(whereFields);
+
+            return (await _conn.ExecuteScalarAsync<int?>(sql, parameters)).GetValueOrDefault();
         }
 
         #endregion
 
         #region 插入数据
-        
+
         public bool Insert<TEntity>(TEntity entity) where TEntity : class
         {
             if (entity == null)
@@ -285,7 +374,6 @@ namespace Ku.Core.Extensions.Dapper
 
         #endregion
 
-
         private static readonly ConcurrentDictionary<string, List<PropertyInfo>> _paramCache = new ConcurrentDictionary<string, List<PropertyInfo>>();
 
         private static List<string> GetProperties(object obj)
@@ -315,20 +403,5 @@ namespace Ku.Core.Extensions.Dapper
             return properties;
         }
 
-
-
-
-
-
-
-
-        public class User
-        {
-            public string AA { set; get; }
-
-            public int BB { set; get; }
-
-            public bool CC { set; get; }
-        }
     }
 }
