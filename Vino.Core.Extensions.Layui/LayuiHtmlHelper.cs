@@ -263,7 +263,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                     content = RenderTextarea(name, modelExplorer, metadata);
                     break;
                 case "enum_radio":
-                    content = RenderEnumRadio(name, modelExplorer, metadata, htmlAttributes);
+                    content = RenderEnumRadio(name, modelExplorer, inline, htmlAttributes);
                     break;
                 case "datetime":
                 case "date":
@@ -529,19 +529,22 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return tag;
         }
 
-        private IHtmlContent RenderEnumRadio(string name, ModelExplorer modelExplorer, ModelMetadata metadata, object htmlAttributes)
+        private IHtmlContent RenderEnumRadio(string name, ModelExplorer modelExplorer, bool inline, object htmlAttributes)
         {
-            var tag = new TagBuilder("div");
-            tag.AddCssClass("layui-form-item");
+            ModelMetadata metadata = modelExplorer.Metadata;
 
             if (!metadata.IsEnum)
             {
                 throw new Exception("type is not enum.");
             }
+
+            var tag = new TagBuilder("div");
+            tag.AddCssClass(inline ? "layui-inline" : "layui-form-item");
+
             var displayName = metadata.GetDisplayName();
 
             tag.InnerHtml.AppendHtml($"<label class=\"layui-form-label\">{displayName}</label>");
-            tag.InnerHtml.AppendHtml("<div class=\"layui-input-block\">");
+            tag.InnerHtml.AppendHtml(inline ? "<div class=\"layui-input-inline\">" : "<div class=\"layui-input-block\">");
 
             string value = "";
             if (modelExplorer.Model != null)
@@ -784,6 +787,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         formate = "yyyy-MM-dd HH:mm:ss";
                     }
                     label.InnerHtml.Append(value.ToString(formate));
+                }
+                else
+                {
+                    label.InnerHtml.Append(modelExplorer.Model.ToString());
                 }
             }
 

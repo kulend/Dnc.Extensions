@@ -35,7 +35,7 @@
             }
         },
         //手机号码
-        url: function (value, item) {
+        phone: function (value, item) {
             if (value && !/^(((13[0-9]{1})|(14[0-9]{1})|(15[0-9]{1})|(17[0-9]{1})|(18[0-9]{1}))+\d{8})$/.test(value)) {
                 return '手机号码格式不正确';
             }
@@ -93,12 +93,19 @@
                 var pattern = $(item).data("val-regular-pattern");
                 var msg = $(item).data("val-regular-msg");
                 if (pattern != undefined && pattern.length > 0) {
-                    if (!new RegExp(pattern).test(value)) {
-                        return msg || "输入的值不符合规则";
-                    }               
+                    if (pattern.indexOf("custom") == 0) {
+                        let js = pattern.substring(7);
+                        if (!eval(js)) {
+                            return msg || "输入的值不符合规则";
+                        }
+                    } else {
+                        if (!new RegExp(pattern).test(value)) {
+                            return msg || "输入的值不符合规则";
+                        }
+                    }
                 }
             }
         }
-    }); 
+    });
 
 });

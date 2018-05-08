@@ -17,25 +17,18 @@ namespace Vino.Core.Extensions.Layui.Test.Models
         /// <summary>
         /// 名称
         /// </summary>
-        [StringLength(100)]
         [Required, MaxLength(20), MinLength(5)]
-        [Display(Name = "名称")]
+        [Display(Name = "名称", Description = "附加说明文字")]
         [RegularExpression(@"^[a-zA-Z''-'\s]{1,40}$", ErrorMessage = "输入的名称不符合规则")]
         public string Name { get; set; }
 
         /// <summary>
         /// 名称
         /// </summary>
-        [Required, MaxLength(20), MinLength(5)]
-        [Display(Name = "名称")]
-        public string Title { get; set; }
-
-        /// <summary>
-        /// 名称
-        /// </summary>
-        [Required, StringLength(100, MinimumLength =8)]
-        [Display(Name = "名称")]
-        public string Title2 { get; set; }
+        [Required]
+        [Display(Name = "手机号")]
+        [DataType(DataType.PhoneNumber)] //也可以为[DataType("mobile")]
+        public string Mobile { get; set; }
 
         /// <summary>
         /// 链接

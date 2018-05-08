@@ -21,7 +21,13 @@ namespace Vino.Core.Extensions.Layui.Test
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddLayui();
+            //使用Layui
+            services.AddLayui(opt => {
+                opt.ActionsInFormItem = false;
+                opt.ActionTagTheme = "layui-btn-primary";
+                opt.ActionTagSize = "layui-btn-sm";
+            });
+
             services.AddMvc();
         }
 
