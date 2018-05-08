@@ -68,6 +68,20 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             return helper.LayuiInputFor(expression, htmlAttributes);
         }
 
+        public static IHtmlContent InputFor<TModel, TResult1, TResult2>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult1>> expr1, Expression<Func<TModel, TResult2>> expr2)
+        {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+            var helper = htmlHelper as LayuiHtmlHelper<TModel>;
+            if (helper == null)
+            {
+                throw new Exception("请在Startup.cs中添加service.AddLayui()");
+            }
+            return helper.LayuiInputFor(expr1, expr2);
+        }
+
         public static IHtmlContent ShowFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression)
         {
             if (htmlHelper == null)
@@ -84,7 +98,40 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 throw new Exception("请在Startup.cs中添加service.AddLayui()");
             }
-            return helper.LayuiShowFor(expression);
+            return helper.LayuiShowFor(expression, null, null);
+        }
+
+        public static IHtmlContent ShowFor<TModel, TResult>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult>> expression, string dataType, object htmlAttributes = null)
+        {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+            var helper = htmlHelper as LayuiHtmlHelper<TModel>;
+            if (helper == null)
+            {
+                throw new Exception("请在Startup.cs中添加service.AddLayui()");
+            }
+            return helper.LayuiShowFor(expression, dataType, htmlAttributes);
+        }
+        
+        public static IHtmlContent ShowFor<TModel, TResult1, TResult2>(this IHtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TResult1>> expr1, Expression<Func<TModel, TResult2>> expr2)
+        {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+            var helper = htmlHelper as LayuiHtmlHelper<TModel>;
+            if (helper == null)
+            {
+                throw new Exception("请在Startup.cs中添加service.AddLayui()");
+            }
+            return helper.LayuiShowFor(expr1, expr2);
         }
 
         #region 操作按钮
