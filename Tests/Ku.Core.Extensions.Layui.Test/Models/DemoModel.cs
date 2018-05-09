@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Vino.Core.Extensions.Layui.Test.Models
+namespace Ku.Core.Extensions.Layui.Test.Models
 {
     public class DemoModel
     {

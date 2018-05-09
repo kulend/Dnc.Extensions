@@ -1,21 +1,25 @@
-# Vino.Core.Extensions.Layui
+# Ku.Core.Extensions.Layui
+
+<p>
+    2018年5月9日，由原先的Vino.Core.Extensions.Layui更名为Ku.Core.Extensions.Layui
+</p>
 
 <p>
     如果您的.net core 2.0项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。
 </p>
 
 * 版本发布
-	<p>[2018.05.09] 版本 2.1.0.1</p>
+	<p>[2018.05.09] 版本 2.2.0.0</p>
 	<p>[2017.08.29] 版本 2.0.2.1</p>
     <p>[2017.08.28] 版本 2.0.2.0</p>
 
 * 安装方法
-<br/> 	先安装Vino.Core.Extensions.Ui
-<br/> PM> Install-Package Vino.Core.Extensions.Ui -Version 2.1.0.1
-<br/> dotnet add package Vino.Core.Extensions.Ui --version 2.1.0.1
-	再安装Vino.Core.Extensions.Layui
-<br/> PM> Install-Package Vino.Core.Extensions.Layui -Version 2.1.0.1
-<br/> dotnet add package Vino.Core.Extensions.Layui --version 2.1.0.1
+<br/> 	先安装Ku.Core.Extensions.Ui
+<br/> PM> Install-Package Ku.Core.Extensions.Ui -Version 2.2.0.0
+<br/> dotnet add package Ku.Core.Extensions.Ui --version 2.2.0.0
+	再安装Ku.Core.Extensions.Layui
+<br/> PM> Install-Package Ku.Core.Extensions.Layui -Version 2.2.0.0
+<br/> dotnet add package Ku.Core.Extensions.Layui --version 2.2.0.0
 
 * 使用方法
     1. 在Startup的ConfigureServices方法中
@@ -26,7 +30,7 @@
 
     2. _ViewImports.cshtml文件中添加
     ```c#
-        @addTagHelper *, Vino.Core.Extensions.Layui
+        @addTagHelper *, Ku.Core.Extensions.Layui
     ```
 
     3. 定义Model及其属性，例如：
@@ -183,7 +187,7 @@
     ```
 
 	6.表单验证
-	<br>    Model字段添加特定的特性或指定DataType即可实现表单自动验证。使用验证页面需引入form.verify.js，文件在Tests/Vino.Core.Extensions.Layui.Test/wwwroot/js目录下有。
+	<br>    Model字段添加特定的特性或指定DataType即可实现表单自动验证。使用验证页面需引入form.verify.js，文件在Tests/Ku.Core.Extensions.Layui.Test/wwwroot/js目录下有。
 	<br>Required特性：不能为空
 	<br>MaxLength特性：最大长度验证
 	<br>MinLength特性：最小长度验证

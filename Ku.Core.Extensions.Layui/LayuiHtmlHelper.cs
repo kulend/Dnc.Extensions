@@ -12,7 +12,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.Encodings.Web;
-using Vino.Core.Extensions.Layui;
+using Ku.Core.Extensions.Layui;
 
 namespace Microsoft.AspNetCore.Mvc.Rendering
 {

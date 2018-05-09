@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Vino.Core.Extensions.Ui;
+using Ku.Core.Extensions.Ui;
 
-namespace Vino.Core.Extensions.Layui
+namespace Ku.Core.Extensions.Layui
 {
     public class LayuiActionTagProcess : IActionTagProcess
     {

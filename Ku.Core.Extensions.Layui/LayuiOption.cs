@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Vino.Core.Extensions.Layui
+namespace Ku.Core.Extensions.Layui
 {
     public class LayuiOption
     {

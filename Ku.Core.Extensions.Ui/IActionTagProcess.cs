@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Vino.Core.Extensions.Ui
+namespace Ku.Core.Extensions.Ui
 {
     public interface IActionTagProcess
     {

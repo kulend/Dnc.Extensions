@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Vino.Core.Extensions.Layui.Test
+namespace Ku.Core.Extensions.Layui.Test
 {
     public class Program
     {

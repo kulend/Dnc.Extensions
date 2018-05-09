@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Vino.Core.Extensions.Layui.Test
+namespace Ku.Core.Extensions.Layui.Test
 {
     public class Startup
     {

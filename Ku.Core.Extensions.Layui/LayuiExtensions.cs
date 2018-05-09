@@ -3,8 +3,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Vino.Core.Extensions.Layui;
-using Vino.Core.Extensions.Ui;
+using Ku.Core.Extensions.Layui;
+using Ku.Core.Extensions.Ui;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

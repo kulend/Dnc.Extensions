@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Vino.Core.Extensions.Layui.Test.Models;
+using Ku.Core.Extensions.Layui.Test.Models;
 
-namespace Vino.Core.Extensions.Layui.Test.Controllers
+namespace Ku.Core.Extensions.Layui.Test.Controllers
 {
     public class HomeController : Controller
     {
