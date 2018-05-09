@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Version>2.2.0.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>kulend@qq.com</Authors>
     <Company>kulend@qq.com</Company>
     <Product>.net core页面使用layui的HtmlHelper扩展</Product>
@@ -10,20 +12,25 @@
     <PackageLicenseUrl>https://github.com/kulend/Vino.Core.Extensions/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/kulend/Vino.Core.Extensions</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kulend/Vino.Core.Extensions</RepositoryUrl>
-    <PackageTags>vino layui .netcore</PackageTags>
     <RepositoryType>git</RepositoryType>
+    <PackageTags>vino layui .netcore</PackageTags>
     <PackageReleaseNotes>如果您的.net core 2.0项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。</PackageReleaseNotes>
-    <Version>2.1.0.1</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <FileVersion>2.2.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor" Version="2.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.AspNetCore.Mvc.ViewFeatures">
-      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.aspnetcore.mvc.viewfeatures\2.0.2\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.ViewFeatures.dll</HintPath>
+    <ProjectReference Include="..\Vino.Core.Extensions.Ui\Vino.Core.Extensions.Ui.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNetCore.Razor.Language">
+      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.aspnetcore.razor.language\2.0.1\lib\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNetCore.Razor.Runtime">
       <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.aspnetcore.razor.runtime\2.0.1\lib\netstandard2.0\Microsoft.AspNetCore.Razor.Runtime.dll</HintPath>
