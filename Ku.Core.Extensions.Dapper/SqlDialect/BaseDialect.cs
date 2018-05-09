@@ -44,16 +44,16 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
         public virtual string FormatUpdateSql<TEntity>(List<string> updateFields, List<string> whereFields, string wherePrefix) where TEntity : class
         {
             var tableName = FormatTableName<TEntity>();
-            return FormatUpdateSqlSub(tableName, updateFields, whereFields, wherePrefix);
+            return FormatUpdateSql(tableName, updateFields, whereFields, wherePrefix);
         }
 
         public virtual string FormatUpdateSql(string tableName, string tableSchema, List<string> updateFields, List<string> whereFields, string wherePrefix)
         {
             tableName = FormatTableName(tableName, tableSchema);
-            return FormatUpdateSqlSub(tableName, updateFields, whereFields, wherePrefix);
+            return FormatUpdateSql(tableName, updateFields, whereFields, wherePrefix);
         }
 
-        private string FormatUpdateSqlSub(string tableName, List<string> updateFields, List<string> whereFields, string wherePrefix)
+        public virtual string FormatUpdateSql(string formatTableName, List<string> updateFields, List<string> whereFields, string wherePrefix)
         {
             var columns = string.Join(",", updateFields.Select(p => QuoteStart + p + QuoteEnd + "=@" + p));
             var where = "";
@@ -61,7 +61,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             {
                 where = " WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteStart + p + QuoteEnd + "=@" + wherePrefix + p));
             }
-            return $"UPDATE {tableName} SET {columns}{where}";
+            return $"UPDATE {formatTableName} SET {columns}{where}";
         }
 
         public string FormatTableName(string tableName, string tableSchema = null)

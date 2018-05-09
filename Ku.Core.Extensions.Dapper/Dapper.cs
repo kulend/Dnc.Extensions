@@ -228,59 +228,134 @@ namespace Ku.Core.Extensions.Dapper
 
         #region 更新数据
 
-        public int Update<TEntity>(TEntity entity) where TEntity : class
+        public int Update<TEntity>(dynamic data, dynamic where = null) where TEntity : class
         {
-            return Update<TEntity>(entity, null as string[]);
-        }
-
-        public int Update<TEntity>(TEntity entity, params Expression<Func<TEntity, object>>[] updateFileds) where TEntity : class
-        {
-            string[] fileds = null;
-            if (updateFileds != null)
-            {
-                fileds = updateFileds.Select(x => (x as MemberExpression)?.Member.Name).ToArray();
-            }
-            return Update<TEntity>(entity, fileds);
-        }
-
-        public int Update<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class
-        {
-            if (entity == null)
+            (string sql, DynamicParameters parameters) = _Update<TEntity>(data as object, where as object);
+            if (string.IsNullOrEmpty(sql))
             {
                 return 0;
             }
-            var parameters = new DynamicParameters();
+
+            return Connection.Execute(sql, parameters, DbTransaction, Timeout);
+        }
+
+        public async Task<int> UpdateAsync<TEntity>(dynamic data, dynamic where = null) where TEntity : class
+        {
+            (string sql, DynamicParameters parameters) = _Update<TEntity>(data as object, where as object);
+            if (string.IsNullOrEmpty(sql))
+            {
+                return 0;
+            }
+
+            return await Connection.ExecuteAsync(sql, parameters, DbTransaction, Timeout);
+        }
+
+        private (string sql, DynamicParameters parameters) _Update<TEntity>(object data, object where) where TEntity : class
+        {
+            if (data == null) return (null, null);
+
+            DynamicParameters parameters;
             var whereFields = new List<string>();
             var updateFields = new List<string>();
-            //取得所有属性
-            var propertyInfos = GetPropertyInfos(entity);
-            foreach (var property in propertyInfos)
-            {
-                if (property.GetCustomAttribute<KeyAttribute>() != null)
-                {
-                    //主键
-                    parameters.Add("w_" + property.Name, property.GetValue(entity, null));
 
-                    whereFields.Add(property.Name);
-                }
-                else
+            //取得所有属性
+            var propertyInfos = GetPropertyInfos(data);
+            if (where == null)
+            {
+                if (!(data is TEntity))
                 {
-                    if (updateFileds == null || updateFileds.Contains(property.Name))
+                    return (null, null);
+                }
+
+                parameters = new DynamicParameters();
+
+                foreach (var property in propertyInfos)
+                {
+                    if (property.GetCustomAttribute<KeyAttribute>() != null)
                     {
-                        parameters.Add(property.Name, property.GetValue(entity, null));
+                        //主键
+                        parameters.Add("w_" + property.Name, property.GetValue(data, null));
+
+                        whereFields.Add(property.Name);
+                    }
+                    else
+                    {
+                        parameters.Add(property.Name, property.GetValue(data, null));
                         updateFields.Add(property.Name);
                     }
                 }
             }
+            else
+            {
+                updateFields = propertyInfos.Select(x => x.Name).ToList();
 
-            var sql = Dialect.FormatUpdateSql<TEntity>(updateFields, whereFields, "w_");
-            return Connection.Execute(sql, parameters, DbTransaction, Timeout);
+                var wherePropertyInfos = GetPropertyInfos(where);
+                whereFields = wherePropertyInfos.Select(x => x.Name).ToList();
+
+                parameters = new DynamicParameters(data);
+                var expandoObject = new ExpandoObject() as IDictionary<string, object>;
+                wherePropertyInfos.ForEach(p => expandoObject.Add("w_" + p.Name, p.GetValue(where, null)));
+                parameters.AddDynamicParams(expandoObject);
+            }
+
+            var sql = Dialect.FormatUpdateSql(Dialect.FormatTableName<TEntity>(), updateFields, whereFields, "w_");
+
+            return (sql, parameters);
         }
 
-        public int UpdateExt(string table, string tableSchema, dynamic data, dynamic condition)
+        //public int Update<TEntity>(TEntity entity) where TEntity : class
+        //{
+        //    return Update<TEntity>(entity, null as string[]);
+        //}
+
+        //public int Update<TEntity>(TEntity entity, params Expression<Func<TEntity, object>>[] updateFileds) where TEntity : class
+        //{
+        //    string[] fileds = null;
+        //    if (updateFileds != null)
+        //    {
+        //        fileds = updateFileds.Select(x => (x as MemberExpression)?.Member.Name).ToArray();
+        //    }
+        //    return Update<TEntity>(entity, fileds);
+        //}
+
+        //public int Update<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class
+        //{
+        //    if (entity == null)
+        //    {
+        //        return 0;
+        //    }
+        //    var parameters = new DynamicParameters();
+        //    var whereFields = new List<string>();
+        //    var updateFields = new List<string>();
+        //    //取得所有属性
+        //    var propertyInfos = GetPropertyInfos(entity);
+        //    foreach (var property in propertyInfos)
+        //    {
+        //        if (property.GetCustomAttribute<KeyAttribute>() != null)
+        //        {
+        //            //主键
+        //            parameters.Add("w_" + property.Name, property.GetValue(entity, null));
+
+        //            whereFields.Add(property.Name);
+        //        }
+        //        else
+        //        {
+        //            if (updateFileds == null || updateFileds.Contains(property.Name))
+        //            {
+        //                parameters.Add(property.Name, property.GetValue(entity, null));
+        //                updateFields.Add(property.Name);
+        //            }
+        //        }
+        //    }
+
+        //    var sql = Dialect.FormatUpdateSql<TEntity>(updateFields, whereFields, "w_");
+        //    return Connection.Execute(sql, parameters, DbTransaction, Timeout);
+        //}
+
+        public int UpdateExt(string table, string tableSchema, dynamic data, dynamic where)
         {
             var obj = data as object;
-            var conditionObj = condition as object;
+            var conditionObj = where as object;
 
             var wherePropertyInfos = GetPropertyInfos(conditionObj);
 
@@ -297,59 +372,59 @@ namespace Ku.Core.Extensions.Dapper
             return Connection.Execute(sql, parameters, DbTransaction, Timeout);
         }
 
-        public async Task<int> UpdateAsync<TEntity>(TEntity entity) where TEntity : class
-        {
-            return await UpdateAsync<TEntity>(entity, null as string[]);
-        }
+        //public async Task<int> UpdateAsync<TEntity>(TEntity entity) where TEntity : class
+        //{
+        //    return await UpdateAsync<TEntity>(entity, null as string[]);
+        //}
 
-        public async Task<int> UpdateAsync<TEntity>(TEntity entity, params Expression<Func<TEntity, object>>[] updateFileds) where TEntity : class
-        {
-            string[] fileds = null;
-            if (updateFileds != null)
-            {
-                fileds = updateFileds.Select(x => (x as MemberExpression)?.Member.Name).ToArray();
-            }
-            return await UpdateAsync<TEntity>(entity, fileds);
-        }
+        //public async Task<int> UpdateAsync<TEntity>(TEntity entity, params Expression<Func<TEntity, object>>[] updateFileds) where TEntity : class
+        //{
+        //    string[] fileds = null;
+        //    if (updateFileds != null)
+        //    {
+        //        fileds = updateFileds.Select(x => (x as MemberExpression)?.Member.Name).ToArray();
+        //    }
+        //    return await UpdateAsync<TEntity>(entity, fileds);
+        //}
 
-        public async Task<int> UpdateAsync<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class
-        {
-            if (entity == null)
-            {
-                return 0;
-            }
-            var parameters = new DynamicParameters();
-            var whereFields = new List<string>();
-            var updateFields = new List<string>();
-            //取得所有属性
-            var propertyInfos = GetPropertyInfos(entity);
-            foreach (var property in propertyInfos)
-            {
-                if (property.GetCustomAttribute<KeyAttribute>() != null)
-                {
-                    //主键
-                    parameters.Add("w_" + property.Name, property.GetValue(entity, null));
+        //public async Task<int> UpdateAsync<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class
+        //{
+        //    if (entity == null)
+        //    {
+        //        return 0;
+        //    }
+        //    var parameters = new DynamicParameters();
+        //    var whereFields = new List<string>();
+        //    var updateFields = new List<string>();
+        //    //取得所有属性
+        //    var propertyInfos = GetPropertyInfos(entity);
+        //    foreach (var property in propertyInfos)
+        //    {
+        //        if (property.GetCustomAttribute<KeyAttribute>() != null)
+        //        {
+        //            //主键
+        //            parameters.Add("w_" + property.Name, property.GetValue(entity, null));
 
-                    whereFields.Add(property.Name);
-                }
-                else
-                {
-                    if (updateFileds == null || updateFileds.Contains(property.Name))
-                    {
-                        parameters.Add(property.Name, property.GetValue(entity, null));
-                        updateFields.Add(property.Name);
-                    }
-                }
-            }
+        //            whereFields.Add(property.Name);
+        //        }
+        //        else
+        //        {
+        //            if (updateFileds == null || updateFileds.Contains(property.Name))
+        //            {
+        //                parameters.Add(property.Name, property.GetValue(entity, null));
+        //                updateFields.Add(property.Name);
+        //            }
+        //        }
+        //    }
 
-            var sql = Dialect.FormatUpdateSql<TEntity>(updateFields, whereFields, "w_");
-            return await Connection.ExecuteAsync(sql, parameters, DbTransaction, Timeout);
-        }
+        //    var sql = Dialect.FormatUpdateSql<TEntity>(updateFields, whereFields, "w_");
+        //    return await Connection.ExecuteAsync(sql, parameters, DbTransaction, Timeout);
+        //}
 
-        public async Task<int> UpdateExtAsync(string table, string tableSchema, dynamic data, dynamic condition)
+        public async Task<int> UpdateExtAsync(string table, string tableSchema, dynamic data, dynamic where)
         {
             var obj = data as object;
-            var conditionObj = condition as object;
+            var conditionObj = where as object;
 
             var wherePropertyInfos = GetPropertyInfos(conditionObj);
 

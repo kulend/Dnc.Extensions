@@ -54,19 +54,23 @@ namespace Ku.Core.Extensions.Dapper
 
         #region 更新数据
 
-        int Update<TEntity>(TEntity entity) where TEntity : class;
+        int Update<TEntity>(dynamic data, dynamic where = null) where TEntity : class;
 
-        int Update<TEntity>(TEntity entity, params Expression<Func<TEntity, object>>[] updateFileds) where TEntity : class;
+        Task<int> UpdateAsync<TEntity>(dynamic data, dynamic where = null) where TEntity : class;
 
-        int Update<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class;
+        //int Update<TEntity>(TEntity entity) where TEntity : class;
+
+        //int Update<TEntity>(TEntity entity, params Expression<Func<TEntity, object>>[] updateFileds) where TEntity : class;
+
+        //int Update<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class;
 
         int UpdateExt(string table, string tableSchema, dynamic data, dynamic where);
 
-        Task<int> UpdateAsync<TEntity>(TEntity entity) where TEntity : class;
+        //Task<int> UpdateAsync<TEntity>(TEntity entity) where TEntity : class;
 
-        Task<int> UpdateAsync<TEntity>(TEntity entity, params Expression<Func<TEntity, object>>[] updateFileds) where TEntity : class;
+        //Task<int> UpdateAsync<TEntity>(TEntity entity, params Expression<Func<TEntity, object>>[] updateFileds) where TEntity : class;
 
-        Task<int> UpdateAsync<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class;
+        //Task<int> UpdateAsync<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class;
 
         Task<int> UpdateExtAsync(string table, string tableSchema, dynamic data, dynamic where);
 

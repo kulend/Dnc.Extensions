@@ -21,6 +21,8 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
 
         string FormatUpdateSql(string tableName, string tableSchema, List<string> updateFields, List<string> whereFields, string wherePrefix);
 
+        string FormatUpdateSql(string formatTableName, List<string> updateFields, List<string> whereFields, string wherePrefix);
+
         string FormatLogicalDeleteRestoreSql<TEntity>(string field, List<string> whereFields = null, string whereSql = null) where TEntity : class;
 
         string FormatDeleteSql<TEntity>(List<string> whereFields) where TEntity : class;
