@@ -17,20 +17,6 @@
     <link rel="icon" href="~/favicon.ico" />
     <link rel="shortcut icon" href="~/favicon.ico" />
     <link rel="stylesheet" href="~/lib/layui/css/layui.css" />
-    <style>
-        .layui-form-item .layui-form-label-show {
-            float: left;
-            display: block;
-            padding: 9px 15px;
-            font-weight: 400;
-            text-align: left;
-            color: #808080;
-        }
-
-        .layui-form-item .layui-input-block .layui-form-label-show {
-            width: 85%;
-        }
-    </style>
 </head>
 <body>
     <div class="layui-layout layui-layout-admin">
@@ -75,7 +61,7 @@
                             <dd><a href="/">页面1</a></dd>
                             <dd><a href="/Home/Index2">页面2</a></dd>
                             <dd><a href="/Home/Index3">页面3</a></dd>
-                            <dd><a target="_blank" href="https://github.com/kulend/Ku.Core.Extensions/blob/master/Ku.Core.Extensions.Layui/README.md">使用方法</a></dd>
+                            <dd><a href="/Home/Index4">页面4</a></dd>
                         </dl>
                     </li>
                 </ul>
@@ -85,20 +71,10 @@
         <div class="layui-body">
             <!-- 内容主体区域 -->
             <div style="padding: 15px;">
-                @using (Html.BeginForm<DemoModel>("#"))
-                {
-                    @Html.InputFor(x => x.Id)
-                    @Html.ShowFor(x => x.Name, x => x.Mobile)
-                    @Html.ShowFor(x => x.Url, x => x.Email)
-                    @Html.ShowFor(x => x.OrderIndex, x => x.Dec)
-                    @Html.ShowFor(x => x.Sex)
-                    @Html.ShowFor(x => x.Switch, x => x.Date)
-                    @Html.ShowFor(x => x.Year, x => x.Month)
-                    @Html.ShowFor(x => x.Remark)
-                }
-                <div>
-                    <a target="_blank" href="https://github.com/kulend/Ku.Core.Extensions">项目地址：https://github.com/kulend/Ku.Core.Extensions </a>
-                </div>
+
+            </div>
+            <div style="padding: 15px;">
+                <a href="~/js/form.verify.js">form.verify.js</a> 下载
             </div>
         </div>
 
@@ -118,21 +94,9 @@
     <script src="~/js/form.verify.js"></script>
     <script>
         //JavaScript代码区域
-        layui.use(['element', 'form', 'laydate'], function () {
+        layui.use(['element', 'form'], function () {
             var element = layui.element;
             var $ = layui.jquery;
-            var laydate = layui.laydate;
-
-            $(".layui-input.laydate").each(function () {
-                var self = $(this);
-                var type = self.data("type") || 'date';
-                var format = self.data("format") || 'yyyy-MM-dd';
-                laydate.render({
-                    elem: self[0],
-                    type: type,
-                    format: format
-                });
-            });
         });
     </script>
 </body>

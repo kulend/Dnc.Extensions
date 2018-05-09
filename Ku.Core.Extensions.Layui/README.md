@@ -4,7 +4,7 @@
     2018年5月9日，由原先的Vino.Core.Extensions.Layui更名为Ku.Core.Extensions.Layui
 </p>
 <p>
-    示例网站地址：http://lay.kulend.com/
+    演示网站地址：http://layui.kulend.com/
 </p>
 <p>
     如果您的.net core 2.0项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。

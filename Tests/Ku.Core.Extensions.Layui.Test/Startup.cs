@@ -23,7 +23,7 @@ namespace Ku.Core.Extensions.Layui.Test
         {
             //使用Layui
             services.AddLayui(opt => {
-                opt.ActionsInFormItem = false;
+                opt.ActionsInFormItem = true;
                 opt.ActionTagTheme = "layui-btn-primary";
                 opt.ActionTagSize = "layui-btn-sm";
             });
