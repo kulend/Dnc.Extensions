@@ -14,10 +14,6 @@
     <p>[2017.08.28] 版本 2.0.2.0</p>
 
 * 安装方法
-<br/> 	先安装Ku.Core.Extensions.Ui
-<br/> PM> Install-Package Ku.Core.Extensions.Ui -Version 2.2.0.0
-<br/> dotnet add package Ku.Core.Extensions.Ui --version 2.2.0.0
-	再安装Ku.Core.Extensions.Layui
 <br/> PM> Install-Package Ku.Core.Extensions.Layui -Version 2.2.0.0
 <br/> dotnet add package Ku.Core.Extensions.Layui --version 2.2.0.0
 
