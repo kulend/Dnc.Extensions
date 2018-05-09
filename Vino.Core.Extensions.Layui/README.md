@@ -10,7 +10,7 @@
     <p>[2017.08.28] 版本 2.0.2.0</p>
 
 * 安装方法
-	先安装Vino.Core.Extensions.Ui
+<br/> 	先安装Vino.Core.Extensions.Ui
 <br/> PM> Install-Package Vino.Core.Extensions.Ui -Version 2.1.0.1
 <br/> dotnet add package Vino.Core.Extensions.Ui --version 2.1.0.1
 	再安装Vino.Core.Extensions.Layui
@@ -183,7 +183,7 @@
     ```
 
 	6.表单验证
-	Model字段添加特定的特性或指定DataType即可实现表单自动验证。使用验证页面需引入form.verify.js，文件在Tests/Vino.Core.Extensions.Layui.Test/wwwroot/js目录下有。
+	<br>    Model字段添加特定的特性或指定DataType即可实现表单自动验证。使用验证页面需引入form.verify.js，文件在Tests/Vino.Core.Extensions.Layui.Test/wwwroot/js目录下有。
 	<br>Required特性：不能为空
 	<br>MaxLength特性：最大长度验证
 	<br>MinLength特性：最小长度验证
@@ -225,13 +225,12 @@
 
     5. 修改全局默认配置
     ```c#
-        //使用Layui
-        services.AddLayui(opt => {
-            opt.SubmitButtonText = "保 存"; //默认提交按钮文字
-            opt.CloseButtonOnClick = "关 闭";//默认关闭按钮文字
-            opt.ResetButtonText = "重 置";//默认重置表单按钮文字
-            opt.CloseButtonOnClick = "closeWindow()";//默认关闭按钮OnClick事件
-        });
+            //使用Layui
+            services.AddLayui(opt => {
+                opt.ActionsInFormItem = false;
+                opt.ActionTagTheme = "layui-btn-primary";
+                opt.ActionTagSize = "layui-btn-sm";
+            });
     ```
 
     6. 关于laydate组件，需要在页面添加以下js脚本：
