@@ -84,55 +84,97 @@ namespace Ku.Core.Extensions.Dapper
 
         #region 查询
 
-        public TEntity QueryOne<TEntity>(dynamic where, string order = null) where TEntity : class
+        private (string sql, DynamicParameters parameters) _Query<TEntity>(object where, object order, bool isOne) where TEntity : class
         {
-            var conditionObj = where as object;
-            var parameters = new DynamicParameters(conditionObj);
-            var whereFields = GetProperties(conditionObj);
-            var sql = Dialect.FormatQuerySql<TEntity>(null, whereFields, order, true);
+            DynamicParameters parameters;
 
-            return Connection.QueryFirstOrDefault<TEntity>(sql, parameters, DbTransaction, Timeout);
+            //处理WHERE语句
+            string whereSql;
+            if (where is DapperSql dSql)
+            {
+                whereSql = Dialect.FormatWhereSql(null, dSql.Sql);
+                parameters = new DynamicParameters(dSql.Parameters as object);
+            } else if (where is string s)
+            {
+                whereSql = Dialect.FormatWhereSql(null, s);
+                parameters = new DynamicParameters();
+            }
+            else
+            {
+                parameters = new DynamicParameters(where);
+                var fields = GetDynamicFields(where).Select(x => x.Name).ToList();
+                whereSql = Dialect.FormatWhereSql(fields, null);
+            }
+
+            //处理ORDER语句
+            string orderSql;
+            if (order is DapperSql dSqlOrder)
+            {
+                orderSql = Dialect.FormatOrderSql(null, dSqlOrder.Sql);
+            }
+            else if (order is string s)
+            {
+                orderSql = Dialect.FormatOrderSql(null, s);
+            }
+            else
+            {
+                Dictionary<string, string> dict = new Dictionary<string, string>();
+                GetDynamicFields(where).ForEach(item => dict.Add(item.Name, (string)item.Value));
+                orderSql = Dialect.FormatOrderSql(dict, null);
+            }
+
+            var sql = Dialect.FormatQuerySql<TEntity>("*", whereSql, orderSql, isOne);
+            return (sql, parameters);
         }
 
-        public async Task<TEntity> QueryOneAsync<TEntity>(dynamic where, string order = null) where TEntity : class
+        public TEntity QueryOne<TEntity>(dynamic where, dynamic order = null) where TEntity : class
         {
-            var conditionObj = where as object;
-            var parameters = new DynamicParameters(conditionObj);
-            var whereFields = GetProperties(conditionObj);
-            var sql = Dialect.FormatQuerySql<TEntity>(null, whereFields, order, true);
+            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, true);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
+
+            return Connection.QueryFirstOrDefault(sql, parameters, DbTransaction, Timeout);
+        }
+
+        public async Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
+        {
+            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, true);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
 
             return await Connection.QueryFirstOrDefaultAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
         }
 
-        public IEnumerable<TEntity> QueryList<TEntity>(dynamic where, string order = null) where TEntity : class
+        public IEnumerable<TEntity> QueryList<TEntity>(dynamic where, dynamic order = null) where TEntity : class
         {
-            var conditionObj = where as object;
-            var parameters = new DynamicParameters(conditionObj);
-            var whereFields = GetProperties(conditionObj);
-            var sql = Dialect.FormatQuerySql<TEntity>(null, whereFields, order, false);
+            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, false);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
 
             return Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
         }
 
-        public async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, string order = null) where TEntity : class
+        public async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
         {
-            var conditionObj = where as object;
-            var parameters = new DynamicParameters(conditionObj);
-            var whereFields = GetProperties(conditionObj);
-            var sql = Dialect.FormatQuerySql<TEntity>(null, whereFields, order, false);
+            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, false);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
 
             return await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
         }
 
-        public (int count, IEnumerable<TEntity> items) QueryPage<TEntity>(int page, int size, dynamic where, string order = null) where TEntity : class
+        public (int count, IEnumerable<TEntity> items) QueryPage<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class
         {
-            var conditionObj = where as object;
-            var parameters = new DynamicParameters(conditionObj);
-            var whereFields = GetProperties(conditionObj);
-
-            var sql = Dialect.FormatCountSql<TEntity>(whereFields);
             //取得总件数
-            var count = Connection.ExecuteScalar<int?>(sql, parameters, DbTransaction, Timeout).GetValueOrDefault();
+            var count = QueryCount<TEntity>(where);
             if (count == 0)
             {
                 return (0, new TEntity[] { });
@@ -143,21 +185,19 @@ namespace Ku.Core.Extensions.Dapper
                 return (count, new TEntity[] { });
             }
 
-            var sql2 = Dialect.FormatQueryPageSql<TEntity>(page, size, null, whereFields, order);
-
+            (string sql, DynamicParameters parameters) = _QueryPage<TEntity>(page, size, where as object, order as object);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
             var items = Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
             return (count, items);
         }
 
-        public async Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, dynamic where, string order = null) where TEntity : class
+        public async Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class
         {
-            var conditionObj = where as object;
-            var parameters = new DynamicParameters(conditionObj);
-            var whereFields = GetProperties(conditionObj);
-
-            var sql = Dialect.FormatCountSql<TEntity>(whereFields);
             //取得总件数
-            var count = (await Connection.ExecuteScalarAsync<int?>(sql, parameters, DbTransaction, Timeout)).GetValueOrDefault();
+            var count = await QueryCountAsync<TEntity>(where);
             if (count == 0)
             {
                 return (0, new TEntity[] { });
@@ -168,60 +208,174 @@ namespace Ku.Core.Extensions.Dapper
                 return (count, new TEntity[] { });
             }
 
-            var sql2 = Dialect.FormatQueryPageSql<TEntity>(page, size, null, whereFields, order);
-
+            (string sql, DynamicParameters parameters) = _QueryPage<TEntity>(page, size, where as object, order as object);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
             var items = await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
             return (count, items);
         }
 
+        private (string sql, DynamicParameters parameters) _QueryPage<TEntity>(int page, int size, object where, object order) where TEntity : class
+        {
+            DynamicParameters parameters;
+
+            //处理WHERE语句
+            string whereSql;
+            if (where is DapperSql dSql)
+            {
+                whereSql = Dialect.FormatWhereSql(null, dSql.Sql);
+                parameters = new DynamicParameters(dSql.Parameters as object);
+            }
+            else if (where is string s)
+            {
+                whereSql = Dialect.FormatWhereSql(null, s);
+                parameters = new DynamicParameters();
+            }
+            else
+            {
+                parameters = new DynamicParameters(where);
+                var fields = GetDynamicFields(where).Select(x => x.Name).ToList();
+                whereSql = Dialect.FormatWhereSql(fields, null);
+            }
+
+            //处理ORDER语句
+            string orderSql;
+            if (order is DapperSql dSqlOrder)
+            {
+                orderSql = Dialect.FormatOrderSql(null, dSqlOrder.Sql);
+            }
+            else if (order is string s)
+            {
+                orderSql = Dialect.FormatOrderSql(null, s);
+            }
+            else
+            {
+                Dictionary<string, string> dict = new Dictionary<string, string>();
+                GetDynamicFields(where).ForEach(item => dict.Add(item.Name, (string)item.Value));
+                orderSql = Dialect.FormatOrderSql(dict, null);
+            }
+
+            var sql = Dialect.FormatQueryPageSql<TEntity>(page, size, "*", whereSql, orderSql);
+            return (sql, parameters);
+        }
+
         #endregion
 
-        #region 件数
+        #region 查询件数
 
+        /// <summary>
+        /// 查询件数
+        /// </summary>
+        /// <param name="where">查询条件</param>
+        /// <returns>数据件数</returns>
         public int QueryCount<TEntity>(dynamic where) where TEntity : class
         {
-            var conditionObj = where as object;
-            var parameters = new DynamicParameters(conditionObj);
-            var whereFields = GetProperties(conditionObj);
-            var sql = Dialect.FormatCountSql<TEntity>(whereFields);
-
+            (string sql, DynamicParameters parameters) = _QueryCount<TEntity>(where as object);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
             return Connection.ExecuteScalar<int?>(sql, parameters, DbTransaction, Timeout).GetValueOrDefault();
         }
 
+        /// <summary>
+        /// 查询件数
+        /// </summary>
+        /// <param name="where">查询条件</param>
+        /// <returns>数据件数</returns>
         public async Task<int> QueryCountAsync<TEntity>(dynamic where) where TEntity : class
         {
-            var conditionObj = where as object;
-            var parameters = new DynamicParameters(conditionObj);
-            var whereFields = GetProperties(conditionObj);
-            var sql = Dialect.FormatCountSql<TEntity>(whereFields);
-
+            (string sql, DynamicParameters parameters) = _QueryCount<TEntity>(where as object);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
             return (await Connection.ExecuteScalarAsync<int?>(sql, parameters, DbTransaction, Timeout)).GetValueOrDefault();
+        }
+
+        private (string sql, DynamicParameters parameters) _QueryCount<TEntity>(object where) where TEntity : class
+        {
+            DynamicParameters parameters;
+            string sql;
+
+            if (where is DapperSql dSql)
+            {
+                sql = Dialect.FormatCountSql<TEntity>(null, dSql.Sql);
+                parameters = new DynamicParameters(dSql.Parameters as object);
+            }
+            else
+            {
+                parameters = new DynamicParameters(where);
+                var fields = GetDynamicFields(where).Select(x => x.Name).ToList();
+                sql = Dialect.FormatCountSql<TEntity>(fields, null);
+            }
+            return (sql, parameters);
         }
 
         #endregion
 
         #region 插入数据
 
-        public bool Insert<TEntity>(TEntity entity) where TEntity : class
+        /// <summary>
+        /// 新增数据
+        /// </summary>
+        /// <returns>操作数据条数</returns>
+        public int Insert<TEntity>(TEntity entity) where TEntity : class
         {
             if (entity == null)
             {
-                return false;
+                throw new DapperException("插入的数据不能为空！");
             }
-            var fields = GetProperties(entity);
+            var fields = GetDynamicFields(entity).Select(x=>x.Name).ToList();
             var sql = Dialect.FormatInsertSql<TEntity>(fields);
-            return Connection.Execute(sql, entity, DbTransaction, Timeout) > 0;
+            return Connection.Execute(sql, entity, DbTransaction, Timeout);
         }
 
-        public async Task<bool> InsertAsync<TEntity>(TEntity entity) where TEntity : class
+        /// <summary>
+        /// 新增数据
+        /// </summary>
+        /// <returns>操作数据条数</returns>
+        public async Task<int> InsertAsync<TEntity>(TEntity entity) where TEntity : class
         {
             if (entity == null)
             {
-                return false;
+                throw new DapperException("插入的数据不能为空！");
             }
-            var fields = GetProperties(entity);
+            var fields = GetDynamicFields(entity).Select(x => x.Name).ToList();
             var sql = Dialect.FormatInsertSql<TEntity>(fields);
-            return await Connection.ExecuteAsync(sql, entity, DbTransaction, Timeout) > 0;
+            return await Connection.ExecuteAsync(sql, entity, DbTransaction, Timeout);
+        }
+
+        /// <summary>
+        /// 批量新增数据
+        /// </summary>
+        /// <returns>操作数据条数</returns>
+        public int Insert<TEntity>(IEnumerable<TEntity> entitys) where TEntity : class
+        {
+            if (entitys == null || !entitys.Any())
+            {
+                throw new DapperException("插入的数据不能为空！");
+            }
+            var fields = GetDynamicFields(entitys.First()).Select(x => x.Name).ToList();
+            var sql = Dialect.FormatInsertSql<TEntity>(fields);
+            return Connection.Execute(sql, entitys, DbTransaction, Timeout);
+        }
+
+        /// <summary>
+        /// 批量新增数据
+        /// </summary>
+        /// <returns>操作数据条数</returns>
+        public async Task<int> InsertAsync<TEntity>(IEnumerable<TEntity> entitys) where TEntity : class
+        {
+            if (entitys == null || !entitys.Any())
+            {
+                throw new DapperException("插入的数据不能为空！");
+            }
+            var fields = GetDynamicFields(entitys.First()).Select(x => x.Name).ToList();
+            var sql = Dialect.FormatInsertSql<TEntity>(fields);
+            return await Connection.ExecuteAsync(sql, entitys, DbTransaction, Timeout);
         }
 
         #endregion
@@ -259,7 +413,9 @@ namespace Ku.Core.Extensions.Dapper
             var updateFields = new List<string>();
 
             //取得所有属性
-            var propertyInfos = GetPropertyInfos(data);
+            var dataFields = GetDynamicFields(data);
+            updateFields = dataFields.Select(x => x.Name).ToList();
+
             if (where == null)
             {
                 if (!(data is TEntity))
@@ -269,32 +425,27 @@ namespace Ku.Core.Extensions.Dapper
 
                 parameters = new DynamicParameters();
 
-                foreach (var property in propertyInfos)
+                foreach (var field in dataFields)
                 {
-                    if (property.GetCustomAttribute<KeyAttribute>() != null)
+                    if (field.IsKey)
                     {
                         //主键
-                        parameters.Add("w_" + property.Name, property.GetValue(data, null));
-
-                        whereFields.Add(property.Name);
+                        parameters.Add("w_" + field.Name, field.Value);
                     }
                     else
                     {
-                        parameters.Add(property.Name, property.GetValue(data, null));
-                        updateFields.Add(property.Name);
+                        parameters.Add(field.Name, field.Value); 
                     }
                 }
             }
             else
             {
-                updateFields = propertyInfos.Select(x => x.Name).ToList();
-
-                var wherePropertyInfos = GetPropertyInfos(where);
-                whereFields = wherePropertyInfos.Select(x => x.Name).ToList();
+                var whereDynamicFields = GetDynamicFields(where);
+                whereFields = whereDynamicFields.Select(x => x.Name).ToList();
 
                 parameters = new DynamicParameters(data);
                 var expandoObject = new ExpandoObject() as IDictionary<string, object>;
-                wherePropertyInfos.ForEach(p => expandoObject.Add("w_" + p.Name, p.GetValue(where, null)));
+                whereDynamicFields.ForEach(p => expandoObject.Add("w_" + p.Name, p.Value));
                 parameters.AddDynamicParams(expandoObject);
             }
 
@@ -352,25 +503,25 @@ namespace Ku.Core.Extensions.Dapper
         //    return Connection.Execute(sql, parameters, DbTransaction, Timeout);
         //}
 
-        public int UpdateExt(string table, string tableSchema, dynamic data, dynamic where)
-        {
-            var obj = data as object;
-            var conditionObj = where as object;
+        //public int UpdateExt(string table, string tableSchema, dynamic data, dynamic where)
+        //{
+        //    var obj = data as object;
+        //    var conditionObj = where as object;
 
-            var wherePropertyInfos = GetPropertyInfos(conditionObj);
+        //    var wherePropertyInfos = GetPropertyInfos(conditionObj);
 
-            var updateFields = GetProperties(obj);
-            var whereFields = wherePropertyInfos.Select(x => x.Name).ToList();
+        //    var updateFields = GetProperties(obj);
+        //    var whereFields = wherePropertyInfos.Select(x => x.Name).ToList();
 
-            var sql = Dialect.FormatUpdateSql(table, tableSchema, updateFields, whereFields, "w_");
+        //    var sql = Dialect.FormatUpdateSql(table, tableSchema, updateFields, whereFields, "w_");
 
-            var parameters = new DynamicParameters(obj);
-            var expandoObject = new ExpandoObject() as IDictionary<string, object>;
-            wherePropertyInfos.ForEach(p => expandoObject.Add("w_" + p.Name, p.GetValue(conditionObj, null)));
-            parameters.AddDynamicParams(expandoObject);
+        //    var parameters = new DynamicParameters(obj);
+        //    var expandoObject = new ExpandoObject() as IDictionary<string, object>;
+        //    wherePropertyInfos.ForEach(p => expandoObject.Add("w_" + p.Name, p.GetValue(conditionObj, null)));
+        //    parameters.AddDynamicParams(expandoObject);
 
-            return Connection.Execute(sql, parameters, DbTransaction, Timeout);
-        }
+        //    return Connection.Execute(sql, parameters, DbTransaction, Timeout);
+        //}
 
         //public async Task<int> UpdateAsync<TEntity>(TEntity entity) where TEntity : class
         //{
@@ -421,29 +572,29 @@ namespace Ku.Core.Extensions.Dapper
         //    return await Connection.ExecuteAsync(sql, parameters, DbTransaction, Timeout);
         //}
 
-        public async Task<int> UpdateExtAsync(string table, string tableSchema, dynamic data, dynamic where)
-        {
-            var obj = data as object;
-            var conditionObj = where as object;
+        //public async Task<int> UpdateExtAsync(string table, string tableSchema, dynamic data, dynamic where)
+        //{
+        //    var obj = data as object;
+        //    var conditionObj = where as object;
 
-            var wherePropertyInfos = GetPropertyInfos(conditionObj);
+        //    var wherePropertyInfos = GetPropertyInfos(conditionObj);
 
-            var updateFields = GetProperties(obj);
-            var whereFields = wherePropertyInfos.Select(x => x.Name).ToList();
+        //    var updateFields = GetProperties(obj);
+        //    var whereFields = wherePropertyInfos.Select(x => x.Name).ToList();
 
-            var sql = Dialect.FormatUpdateSql(table, tableSchema, updateFields, whereFields, "w_");
+        //    var sql = Dialect.FormatUpdateSql(table, tableSchema, updateFields, whereFields, "w_");
 
-            var parameters = new DynamicParameters(obj);
-            var expandoObject = new ExpandoObject() as IDictionary<string, object>;
-            wherePropertyInfos.ForEach(p => expandoObject.Add("w_" + p.Name, p.GetValue(conditionObj, null)));
-            parameters.AddDynamicParams(expandoObject);
+        //    var parameters = new DynamicParameters(obj);
+        //    var expandoObject = new ExpandoObject() as IDictionary<string, object>;
+        //    wherePropertyInfos.ForEach(p => expandoObject.Add("w_" + p.Name, p.GetValue(conditionObj, null)));
+        //    parameters.AddDynamicParams(expandoObject);
 
-            return await Connection.ExecuteAsync(sql, parameters, DbTransaction, Timeout);
-        }
+        //    return await Connection.ExecuteAsync(sql, parameters, DbTransaction, Timeout);
+        //}
 
         #endregion
 
-        #region 删除
+        #region 删除&逻辑删除
 
         public int Delete<TEntity>(dynamic where) where TEntity : class
         {
@@ -469,29 +620,45 @@ namespace Ku.Core.Extensions.Dapper
         {
             if (where == null) return (null, null);
 
+            DynamicParameters parameters;
+            string sql;
+
             var type = typeof(TEntity);
             var attr = type.GetCustomAttribute<LogicalDeleteAttribute>(true);
             if (attr == null)
             {
-                return (null, null);
-            }
+                //物理删除
+                if (where is DapperSql dSql)
+                {
+                    sql = Dialect.FormatDeleteSql<TEntity>(null, dSql.Sql);
+                    parameters = new DynamicParameters(dSql.Parameters as object);
+                    parameters.Add(attr.Field, attr.DeletedValue);
+                }
+                else
+                {
+                    parameters = new DynamicParameters(where);
+                    var fields = GetDynamicFields(where).Select(x => x.Name).ToList();
 
-            DynamicParameters parameters;
-            string sql;
-
-            if (where is DapperSql dSql)
-            {
-                sql = Dialect.FormatLogicalDeleteRestoreSql<TEntity>(attr.Field, null, dSql.Sql);
-                parameters = new DynamicParameters(dSql.Parameters as object);
-                parameters.Add(attr.Field, attr.DeletedValue);
+                    sql = Dialect.FormatDeleteSql<TEntity>(fields, null);
+                    parameters.Add(attr.Field, attr.DeletedValue);
+                }
             }
             else
             {
-                parameters = new DynamicParameters(where);
-                var fields = GetProperties(where);
+                if (where is DapperSql dSql)
+                {
+                    sql = Dialect.FormatLogicalDeleteRestoreSql<TEntity>(attr.Field, null, dSql.Sql);
+                    parameters = new DynamicParameters(dSql.Parameters as object);
+                    parameters.Add(attr.Field, attr.DeletedValue);
+                }
+                else
+                {
+                    parameters = new DynamicParameters(where);
+                    var fields = GetDynamicFields(where).Select(x => x.Name).ToList();
 
-                sql = Dialect.FormatLogicalDeleteRestoreSql<TEntity>(attr.Field, fields);
-                parameters.Add(attr.Field, attr.DeletedValue);
+                    sql = Dialect.FormatLogicalDeleteRestoreSql<TEntity>(attr.Field, fields);
+                    parameters.Add(attr.Field, attr.DeletedValue);
+                }
             }
             return (sql, parameters);
         }
@@ -528,7 +695,7 @@ namespace Ku.Core.Extensions.Dapper
             var attr = type.GetCustomAttribute<LogicalDeleteAttribute>(true);
             if (attr == null)
             {
-                return (null, null);
+                throw new DapperException("该对象不支持逻辑恢复操作！");
             }
 
             DynamicParameters parameters;
@@ -543,7 +710,7 @@ namespace Ku.Core.Extensions.Dapper
             else
             {
                 parameters = new DynamicParameters(where);
-                var fields = GetProperties(where);
+                var fields = GetDynamicFields(where).Select(x => x.Name).ToList();
 
                 sql = Dialect.FormatLogicalDeleteRestoreSql<TEntity>(attr.Field, fields);
                 parameters.Add(attr.Field, attr.NormalValue);
@@ -553,33 +720,107 @@ namespace Ku.Core.Extensions.Dapper
 
         #endregion
 
-        private static readonly ConcurrentDictionary<string, List<PropertyInfo>> _paramCache = new ConcurrentDictionary<string, List<PropertyInfo>>();
+        //private static readonly ConcurrentDictionary<string, List<PropertyInfo>> _paramCache = new ConcurrentDictionary<string, List<PropertyInfo>>();
 
-        private static List<string> GetProperties(object obj)
+        //private static List<string> GetProperties(object obj)
+        //{
+        //    if (obj == null)
+        //    {
+        //        return new List<string>();
+        //    }
+        //    if (obj is DynamicParameters)
+        //    {
+        //        return (obj as DynamicParameters).ParameterNames.ToList();
+        //    }
+        //    return GetPropertyInfos(obj).Select(x => x.Name).ToList();
+        //}
+
+        //private static List<PropertyInfo> GetPropertyInfos(object obj)
+        //{
+        //    if (obj == null)
+        //    {
+        //        return new List<PropertyInfo>();
+        //    }
+
+        //    List<PropertyInfo> properties;
+        //    if (_paramCache.TryGetValue(obj.GetType().FullName, out properties)) return properties.ToList();
+        //    properties = obj.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public).Where(x=>!x.GetAccessors()[0].IsVirtual) .ToList();
+        //    _paramCache[obj.GetType().FullName] = properties;
+        //    return properties;
+        //}
+
+        private static readonly ConcurrentDictionary<string, IEnumerable<PropertyInfo>> _fieldCache = new ConcurrentDictionary<string, IEnumerable<PropertyInfo>>();
+
+        private static List<DapperDynamicField> GetDynamicFields(object obj)
         {
             if (obj == null)
             {
-                return new List<string>();
+                return new List<DapperDynamicField>();
             }
-            if (obj is DynamicParameters)
+            if (obj is DynamicParameters dp)
             {
-                return (obj as DynamicParameters).ParameterNames.ToList();
+                var fields = new List<DapperDynamicField>();
+                foreach (var name in dp.ParameterNames)
+                {
+                    fields.Add(new DapperDynamicField {
+                        Name = name,
+                        Value = dp.Get<object>(name)
+                    });
+                }
+                return fields;
             }
-            return GetPropertyInfos(obj).Select(x => x.Name).ToList();
-        }
-
-        private static List<PropertyInfo> GetPropertyInfos(object obj)
-        {
-            if (obj == null)
+            if (obj is ExpandoObject eo)
             {
-                return new List<PropertyInfo>();
+                var dic = (IDictionary<string, object>)eo;
+
+                var fields = new List<DapperDynamicField>();
+                foreach (var name in dic.Keys)
+                {
+                    fields.Add(new DapperDynamicField
+                    {
+                        Name = name,
+                        Value = dic[name]
+                    });
+                }
+                return fields;
+            }
+            if (obj.GetType().Name.Contains("AnonymousType"))
+            {
+                var props = obj.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public);
+                var fields = new List<DapperDynamicField>();
+                foreach (var p in props)
+                {
+                    fields.Add(new DapperDynamicField
+                    {
+                        Name = p.Name,
+                        Value = p.GetValue(obj, null)
+                    });
+                }
+                return fields;
             }
 
-            List<PropertyInfo> properties;
-            if (_paramCache.TryGetValue(obj.GetType().FullName, out properties)) return properties.ToList();
-            properties = obj.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public).Where(x=>!x.GetAccessors()[0].IsVirtual) .ToList();
-            _paramCache[obj.GetType().FullName] = properties;
-            return properties;
+            var key = obj.GetType().FullName;
+            IEnumerable<PropertyInfo> properties;
+            if (!_fieldCache.TryGetValue(key, out properties))
+            {
+                properties = obj.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public).Where(x => !x.GetAccessors()[0].IsVirtual);
+                _fieldCache.TryAdd(key, properties);
+            }
+
+            var fieldlst = new List<DapperDynamicField>();
+            if (properties != null)
+            {
+                foreach (var p in properties)
+                {
+                    fieldlst.Add(new DapperDynamicField
+                    {
+                        Name = p.Name,
+                        Value = p.GetValue(obj, null),
+                        IsKey = p.GetCustomAttribute<KeyAttribute>() != null
+                    });
+                }
+            }
+            return fieldlst;
         }
 
         #region Dispose

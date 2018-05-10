@@ -17,25 +17,25 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             get { return '`'; }
         }
 
-        public override string FormatQuerySql<TEntity>(List<string> searchFields, List<string> whereFields, string order, bool isOne)
+        public override string FormatQuerySql<TEntity>(string field, string where, string order, bool isOne)
         {
             var sql = new StringBuilder("SELECT ");
-            if (searchFields != null && searchFields.Any())
+            if (string.IsNullOrEmpty(field))
             {
-                sql.Append(string.Join(",", searchFields.Select(p => QuoteFiled(p))));
+                field = "*";
             }
-            else
-            {
-                sql.Append("*");
-            }
+            sql.Append(field);
             sql.Append(" FROM " + FormatTableName<TEntity>());
-            if (whereFields != null && whereFields.Any())
+
+            if (!string.IsNullOrEmpty(where))
             {
-                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
+                sql.Append(where);
             }
 
-            //order by
-            sql.Append(FormatOrderSql(order));
+            if (!string.IsNullOrEmpty(order))
+            {
+                sql.Append(order);
+            }
 
             if (isOne)
             {
@@ -44,25 +44,25 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             return sql.ToString();
         }
 
-        public override string FormatQueryPageSql<TEntity>(int page, int rows, List<string> searchFields, List<string> whereFields, string order)
+        public override string FormatQueryPageSql<TEntity>(int page, int rows, string field, string where, string order)
         {
             var sql = new StringBuilder("SELECT ");
-            if (searchFields != null && searchFields.Any())
+            if (string.IsNullOrEmpty(field))
             {
-                sql.Append(string.Join(",", searchFields.Select(p => QuoteFiled(p))));
+                field = "*";
             }
-            else
-            {
-                sql.Append("*");
-            }
+            sql.Append(field);
             sql.Append(" FROM " + FormatTableName<TEntity>());
-            if (whereFields != null && whereFields.Any())
+
+            if (!string.IsNullOrEmpty(where))
             {
-                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
+                sql.Append(where);
             }
 
-            //order by
-            sql.Append(FormatOrderSql(order));
+            if (!string.IsNullOrEmpty(order))
+            {
+                sql.Append(order);
+            }
 
             sql.Append($" LIMIT {(page - 1) * rows} {rows}");
 

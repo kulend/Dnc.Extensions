@@ -22,33 +22,63 @@ namespace Ku.Core.Extensions.Dapper
 
         #region 查询
 
-        TEntity QueryOne<TEntity>(dynamic where, string order = null) where TEntity : class;
+        TEntity QueryOne<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
 
-        Task<TEntity> QueryOneAsync<TEntity>(dynamic where, string order = null) where TEntity : class;
+        Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
 
-        IEnumerable<TEntity> QueryList<TEntity>(dynamic where, string order = null) where TEntity : class;
+        IEnumerable<TEntity> QueryList<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
 
-        Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, string order = null) where TEntity : class;
+        Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
 
-        (int count, IEnumerable<TEntity> items) QueryPage<TEntity>(int page, int size, dynamic where, string order = null) where TEntity : class;
+        (int count, IEnumerable<TEntity> items) QueryPage<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class;
 
-        Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, dynamic where, string order = null) where TEntity : class;
+        Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class;
 
         #endregion
 
-        #region 件数
+        #region 查询件数
 
+        /// <summary>
+        /// 查询件数
+        /// </summary>
+        /// <param name="where">查询条件</param>
+        /// <returns>数据件数</returns>
         int QueryCount<TEntity>(dynamic where) where TEntity : class;
 
+        /// <summary>
+        /// 查询件数
+        /// </summary>
+        /// <param name="where">查询条件</param>
+        /// <returns>数据件数</returns>
         Task<int> QueryCountAsync<TEntity>(dynamic where) where TEntity : class;
 
         #endregion
 
         #region 插入数据
 
-        bool Insert<TEntity>(TEntity entity) where TEntity : class;
+        /// <summary>
+        /// 新增数据
+        /// </summary>
+        /// <returns>操作数据条数</returns>
+        int Insert<TEntity>(TEntity entity) where TEntity : class;
 
-        Task<bool> InsertAsync<TEntity>(TEntity entity) where TEntity : class;
+        /// <summary>
+        /// 新增数据
+        /// </summary>
+        /// <returns>操作数据条数</returns>
+        Task<int> InsertAsync<TEntity>(TEntity entity) where TEntity : class;
+
+        /// <summary>
+        /// 批量新增数据
+        /// </summary>
+        /// <returns>操作数据条数</returns>
+        int Insert<TEntity>(IEnumerable<TEntity> entitys) where TEntity : class;
+
+        /// <summary>
+        /// 批量新增数据
+        /// </summary>
+        /// <returns>操作数据条数</returns>
+        Task<int> InsertAsync<TEntity>(IEnumerable<TEntity> entitys) where TEntity : class;
 
         #endregion
 
@@ -64,7 +94,7 @@ namespace Ku.Core.Extensions.Dapper
 
         //int Update<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class;
 
-        int UpdateExt(string table, string tableSchema, dynamic data, dynamic where);
+        //int UpdateExt(string table, string tableSchema, dynamic data, dynamic where);
 
         //Task<int> UpdateAsync<TEntity>(TEntity entity) where TEntity : class;
 
@@ -72,7 +102,7 @@ namespace Ku.Core.Extensions.Dapper
 
         //Task<int> UpdateAsync<TEntity>(TEntity entity, params string[] updateFileds) where TEntity : class;
 
-        Task<int> UpdateExtAsync(string table, string tableSchema, dynamic data, dynamic where);
+        //Task<int> UpdateExtAsync(string table, string tableSchema, dynamic data, dynamic where);
 
         #endregion
 

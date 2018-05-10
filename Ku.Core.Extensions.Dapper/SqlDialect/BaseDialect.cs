@@ -101,28 +101,93 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             return $"UPDATE {FormatTableName<TEntity>()} SET {QuoteFiled(field)}=@{field} {where}";
         }
 
-        public virtual string FormatDeleteSql<TEntity>(List<string> whereFields) where TEntity : class
+        public virtual string FormatDeleteSql<TEntity>(List<string> whereFields, string whereSql) where TEntity : class
         {
             var where = "WHERE 1<>1 ";
             if (whereFields != null && whereFields.Any())
             {
                 where = "WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p));
+            } else if (!string.IsNullOrEmpty(whereSql))
+            {
+                where = "WHERE " + whereSql;
             }
 
             return $"DELETE FROM {FormatTableName<TEntity>()} {where}";
         }
 
-        public virtual string FormatQuerySql<TEntity>(List<string> searchFields, List<string> whereFields, string order, bool isOne) where TEntity : class
+        public virtual string FormatCountSql<TEntity>(List<string> whereFields, string whereSql)
+        {
+            var sql = new StringBuilder("SELECT COUNT(1)");
+            sql.Append(" FROM " + FormatTableName<TEntity>());
+            if (whereFields != null && whereFields.Any())
+            {
+                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
+            } else if (!string.IsNullOrEmpty(whereSql))
+            {
+                sql.Append(" WHERE " + whereSql);
+            }
+            return sql.ToString();
+        }
+
+        public virtual string FormatQueryPageSql<TEntity>(int page, int rows, string field, string where, string order) where TEntity : class
         {
             throw new NotImplementedException();
         }
 
-        public virtual string FormatOrderSql(string order)
+        public virtual string FormatWhereSql(List<string> whereFields, string whereSql)
+        {
+            if ((whereFields == null || !whereFields.Any()) && string.IsNullOrEmpty(whereSql))
+            {
+                return "";
+            }
+
+            var sql = new StringBuilder(" WHERE ");
+            if (whereFields != null && whereFields.Any())
+            {
+                sql.Append(string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
+                if (!string.IsNullOrEmpty(whereSql))
+                {
+                    sql.Append(" AND ");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(whereSql))
+            {
+                sql.Append(whereSql);
+            }
+            return sql.ToString();
+        }
+
+        public virtual string FormatOrderSql(Dictionary<string, string> fields, string orderSql)
+        {
+            if ((fields == null || !fields.Any()) && string.IsNullOrEmpty(orderSql))
+            {
+                return "";
+            }
+
+            var sql = new StringBuilder(" ORDER BY ");
+            if (fields != null && fields.Any())
+            {
+                sql.Append(string.Join(",", fields.Select(p => QuoteFiled(p.Key) + ("desc".Equals(p.Value, StringComparison.OrdinalIgnoreCase) ? " DESC" : " ASC"))));
+                if (!string.IsNullOrEmpty(orderSql))
+                {
+                    sql.Append(",");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(orderSql))
+            {
+                sql.Append(orderSql);
+            }
+            return sql.ToString();
+        }
+
+        protected virtual string ParseOrderSql(string order)
         {
             if (string.IsNullOrEmpty(order)) return "";
 
             var sql = "";
-            var orderFileds = order.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x=> x.Trim());
+            var orderFileds = order.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
 
             foreach (var item in orderFileds)
             {
@@ -140,18 +205,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             return " ORDER BY " + sql;
         }
 
-        public virtual string FormatCountSql<TEntity>(List<string> whereFields)
-        {
-            var sql = new StringBuilder("SELECT COUNT(1)");
-            sql.Append(" FROM " + FormatTableName<TEntity>());
-            if (whereFields != null && whereFields.Any())
-            {
-                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
-            }
-            return sql.ToString();
-        }
-
-        public virtual string FormatQueryPageSql<TEntity>(int page, int rows, List<string> searchFields, List<string> whereFields, string order) where TEntity : class
+        public virtual string FormatQuerySql<TEntity>(string fieldSql,string where, string order, bool isOne) where TEntity : class
         {
             throw new NotImplementedException();
         }
