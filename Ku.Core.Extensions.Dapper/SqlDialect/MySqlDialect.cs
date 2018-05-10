@@ -64,7 +64,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
                 sql.Append(order);
             }
 
-            sql.Append($" LIMIT {(page - 1) * rows} {rows}");
+            sql.Append($" LIMIT {(page - 1) * rows},{rows}");
 
             return sql.ToString();
         }

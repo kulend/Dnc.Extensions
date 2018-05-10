@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ku.Core.Extensions.Dapper.SqlDialect;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
@@ -8,6 +9,10 @@ namespace Ku.Core.Extensions.Dapper
 {
     public interface IDapper : IDisposable
     {
+        IDbConnection Connection { get; }
+
+        ISqlDialect Dialect { set; get; }
+
         #region 事务
 
         ITransation BeginTrans();
