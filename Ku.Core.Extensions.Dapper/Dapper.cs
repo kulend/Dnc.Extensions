@@ -135,7 +135,7 @@ namespace Ku.Core.Extensions.Dapper
                 throw new DapperException("SQL异常！");
             }
 
-            return Connection.QueryFirstOrDefault(sql, parameters, DbTransaction, Timeout);
+            return Connection.QueryFirstOrDefault<TEntity>(sql, parameters, DbTransaction, Timeout);
         }
 
         public async Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
@@ -174,7 +174,7 @@ namespace Ku.Core.Extensions.Dapper
         public (int count, IEnumerable<TEntity> items) QueryPage<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class
         {
             //取得总件数
-            var count = QueryCount<TEntity>(where);
+            var count = QueryCount<TEntity>(where as object);
             if (count == 0)
             {
                 return (0, new TEntity[] { });
@@ -197,7 +197,7 @@ namespace Ku.Core.Extensions.Dapper
         public async Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class
         {
             //取得总件数
-            var count = await QueryCountAsync<TEntity>(where);
+            var count = await QueryCountAsync<TEntity>(where as object);
             if (count == 0)
             {
                 return (0, new TEntity[] { });
