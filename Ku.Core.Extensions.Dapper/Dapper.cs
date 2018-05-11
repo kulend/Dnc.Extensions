@@ -1,16 +1,14 @@
 ﻿using Dapper;
 using Ku.Core.Extensions.Dapper.Attributes;
-using Ku.Core.Extensions.Dapper.Sql;
 using Ku.Core.Extensions.Dapper.SqlDialect;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -18,6 +16,8 @@ namespace Ku.Core.Extensions.Dapper
 {
     internal class Dapper : IDapper
     {
+        private readonly ILogger<Dapper> _logger;
+
         private DapperOptions _options;
         private ITransation _transaction;
         private IDbTransaction DbTransaction { get { return _transaction?.Transaction; } }
@@ -34,8 +34,9 @@ namespace Ku.Core.Extensions.Dapper
         /// </summary>
         public ISqlDialect Dialect { set; get; }
 
-        public Dapper(IOptions<DapperOptions> options)
+        public Dapper(IOptions<DapperOptions> options, ILogger<Dapper> logger)
         {
+            this._logger = logger;
             this._options = options.Value;
             this.Connection = _options.DbConnection();
             this.Dialect = _options.SqlDialect;
@@ -135,6 +136,7 @@ namespace Ku.Core.Extensions.Dapper
                 throw new DapperException("SQL异常！");
             }
 
+            _logger.LogDebug("[Dapper]QueryFirstOrDefault:" + sql);
             return Connection.QueryFirstOrDefault<TEntity>(sql, parameters, DbTransaction, Timeout);
         }
 
@@ -145,7 +147,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 throw new DapperException("SQL异常！");
             }
-
+            _logger.LogDebug("[Dapper]QueryFirstOrDefaultAsync:" + sql);
             return await Connection.QueryFirstOrDefaultAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
         }
 
@@ -156,7 +158,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 throw new DapperException("SQL异常！");
             }
-
+            _logger.LogDebug("[Dapper]Query:" + sql);
             return Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
         }
 
@@ -167,7 +169,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 throw new DapperException("SQL异常！");
             }
-
+            _logger.LogDebug("[Dapper]QueryAsync:" + sql);
             return await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
         }
 
@@ -190,6 +192,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 throw new DapperException("SQL异常！");
             }
+            _logger.LogDebug("[Dapper]Query:" + sql);
             var items = Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
             return (count, items);
         }
@@ -213,6 +216,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 throw new DapperException("SQL异常！");
             }
+            _logger.LogDebug("[Dapper]QueryAsync:" + sql);
             var items = await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
             return (count, items);
         }
@@ -277,6 +281,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 throw new DapperException("SQL异常！");
             }
+            _logger.LogDebug("[Dapper]ExecuteScalar:" + sql);
             return Connection.ExecuteScalar<int?>(sql, parameters, DbTransaction, Timeout).GetValueOrDefault();
         }
 
@@ -292,6 +297,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 throw new DapperException("SQL异常！");
             }
+            _logger.LogDebug("[Dapper]ExecuteScalarAsync:" + sql);
             return (await Connection.ExecuteScalarAsync<int?>(sql, parameters, DbTransaction, Timeout)).GetValueOrDefault();
         }
 
@@ -330,6 +336,7 @@ namespace Ku.Core.Extensions.Dapper
             }
             var fields = GetDynamicFields(entity).Select(x=>x.Name).ToList();
             var sql = Dialect.FormatInsertSql<TEntity>(fields);
+            _logger.LogDebug("[Dapper]Execute:" + sql);
             return Connection.Execute(sql, entity, DbTransaction, Timeout);
         }
 
@@ -345,6 +352,7 @@ namespace Ku.Core.Extensions.Dapper
             }
             var fields = GetDynamicFields(entity).Select(x => x.Name).ToList();
             var sql = Dialect.FormatInsertSql<TEntity>(fields);
+            _logger.LogDebug("[Dapper]ExecuteAsync:" + sql);
             return await Connection.ExecuteAsync(sql, entity, DbTransaction, Timeout);
         }
 
@@ -360,6 +368,7 @@ namespace Ku.Core.Extensions.Dapper
             }
             var fields = GetDynamicFields(entitys.First()).Select(x => x.Name).ToList();
             var sql = Dialect.FormatInsertSql<TEntity>(fields);
+            _logger.LogDebug("[Dapper]Execute:" + sql);
             return Connection.Execute(sql, entitys, DbTransaction, Timeout);
         }
 
@@ -375,6 +384,7 @@ namespace Ku.Core.Extensions.Dapper
             }
             var fields = GetDynamicFields(entitys.First()).Select(x => x.Name).ToList();
             var sql = Dialect.FormatInsertSql<TEntity>(fields);
+            _logger.LogDebug("[Dapper]ExecuteAsync:" + sql);
             return await Connection.ExecuteAsync(sql, entitys, DbTransaction, Timeout);
         }
 
@@ -389,7 +399,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 return 0;
             }
-
+            _logger.LogDebug("[Dapper]Execute:" + sql);
             return Connection.Execute(sql, parameters, DbTransaction, Timeout);
         }
 
@@ -400,7 +410,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 return 0;
             }
-
+            _logger.LogDebug("[Dapper]ExecuteAsync:" + sql);
             return await Connection.ExecuteAsync(sql, parameters, DbTransaction, Timeout);
         }
 
@@ -603,6 +613,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 return 0;
             }
+            _logger.LogDebug("[Dapper]Execute:" + sql);
             return Connection.Execute(sql, parameters, DbTransaction, Timeout);
         }
 
@@ -613,6 +624,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 return 0;
             }
+            _logger.LogDebug("[Dapper]ExecuteAsync:" + sql);
             return await Connection.ExecuteAsync(sql, parameters, DbTransaction, Timeout);
         }
 
@@ -674,6 +686,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 return 0;
             }
+            _logger.LogDebug("[Dapper]Execute:" + sql);
             return Connection.Execute(sql, parameters, DbTransaction, Timeout);
         }
 
@@ -684,6 +697,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 return 0;
             }
+            _logger.LogDebug("[Dapper]ExecuteAsync:" + sql);
             return await Connection.ExecuteAsync(sql, parameters, DbTransaction, Timeout);
         }
 
@@ -719,35 +733,6 @@ namespace Ku.Core.Extensions.Dapper
         }
 
         #endregion
-
-        //private static readonly ConcurrentDictionary<string, List<PropertyInfo>> _paramCache = new ConcurrentDictionary<string, List<PropertyInfo>>();
-
-        //private static List<string> GetProperties(object obj)
-        //{
-        //    if (obj == null)
-        //    {
-        //        return new List<string>();
-        //    }
-        //    if (obj is DynamicParameters)
-        //    {
-        //        return (obj as DynamicParameters).ParameterNames.ToList();
-        //    }
-        //    return GetPropertyInfos(obj).Select(x => x.Name).ToList();
-        //}
-
-        //private static List<PropertyInfo> GetPropertyInfos(object obj)
-        //{
-        //    if (obj == null)
-        //    {
-        //        return new List<PropertyInfo>();
-        //    }
-
-        //    List<PropertyInfo> properties;
-        //    if (_paramCache.TryGetValue(obj.GetType().FullName, out properties)) return properties.ToList();
-        //    properties = obj.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public).Where(x=>!x.GetAccessors()[0].IsVirtual) .ToList();
-        //    _paramCache[obj.GetType().FullName] = properties;
-        //    return properties;
-        //}
 
         private static readonly ConcurrentDictionary<string, IEnumerable<PropertyInfo>> _fieldCache = new ConcurrentDictionary<string, IEnumerable<PropertyInfo>>();
 
