@@ -119,7 +119,7 @@ namespace Ku.Core.Extensions.Dapper
             else
             {
                 Dictionary<string, string> dict = new Dictionary<string, string>();
-                GetDynamicFields(where).ForEach(item => dict.Add(item.Name, (string)item.Value));
+                GetDynamicFields(order).ForEach(item => dict.Add(item.Name, (string)item.Value));
                 orderSql = Dialect.FormatOrderSql(dict, null);
             }
 
