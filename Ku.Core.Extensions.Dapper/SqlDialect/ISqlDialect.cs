@@ -6,6 +6,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
 {
     public interface ISqlDialect
     {
+        string Concat { get; }
         char QuoteStart { get; }
         char QuoteEnd { get; }
         char ParameterPrefix { get; }

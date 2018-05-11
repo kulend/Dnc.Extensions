@@ -9,6 +9,11 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
 {
     public class BaseDialect : ISqlDialect
     {
+        public virtual string Concat
+        {
+            get { return "CONCAT"; }
+        }
+
         public virtual char QuoteStart
         {
             get { return '"'; }

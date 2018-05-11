@@ -107,7 +107,7 @@ namespace Ku.Core.Extensions.Dapper
             }
 
             //处理ORDER语句
-            string orderSql;
+            string orderSql = null;
             if (order is DapperSql dSqlOrder)
             {
                 orderSql = Dialect.FormatOrderSql(null, dSqlOrder.Sql);
@@ -116,7 +116,7 @@ namespace Ku.Core.Extensions.Dapper
             {
                 orderSql = Dialect.FormatOrderSql(null, s);
             }
-            else
+            else if (order != null)
             {
                 Dictionary<string, string> dict = new Dictionary<string, string>();
                 GetDynamicFields(order).ForEach(item => dict.Add(item.Name, (string)item.Value));
@@ -241,7 +241,7 @@ namespace Ku.Core.Extensions.Dapper
             }
 
             //处理ORDER语句
-            string orderSql;
+            string orderSql = null;
             if (order is DapperSql dSqlOrder)
             {
                 orderSql = Dialect.FormatOrderSql(null, dSqlOrder.Sql);
@@ -250,10 +250,10 @@ namespace Ku.Core.Extensions.Dapper
             {
                 orderSql = Dialect.FormatOrderSql(null, s);
             }
-            else
+            else if(order != null)
             {
                 Dictionary<string, string> dict = new Dictionary<string, string>();
-                GetDynamicFields(where).ForEach(item => dict.Add(item.Name, (string)item.Value));
+                GetDynamicFields(order).ForEach(item => dict.Add(item.Name, (string)item.Value));
                 orderSql = Dialect.FormatOrderSql(dict, null);
             }
 
