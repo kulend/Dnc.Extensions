@@ -3,6 +3,7 @@ using Ku.Core.Extensions.Dapper.Attributes;
 using Ku.Core.Extensions.Dapper.SqlDialect;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -22,7 +23,7 @@ namespace Ku.Core.Extensions.Dapper
         private ITransation _transaction;
         public IDbTransaction DbTransaction { get { return _transaction?.Transaction; } }
 
-        public int? Timeout { set; get; } = null;
+        public int? Timeout { private set; get; } = null;
 
         /// <summary>
         /// 数据库连接对象
@@ -85,7 +86,7 @@ namespace Ku.Core.Extensions.Dapper
 
         #region 查询
 
-        private (string sql, DynamicParameters parameters) _Query<TEntity>(object where, object order, bool isOne) where TEntity : class
+        private (string sql, DynamicParameters parameters) _Query<TEntity>(object where, object order, bool isOne, object field, object tablejoin) where TEntity : class
         {
             DynamicParameters parameters;
 
@@ -124,13 +125,49 @@ namespace Ku.Core.Extensions.Dapper
                 orderSql = Dialect.FormatOrderSql(dict, null);
             }
 
-            var sql = Dialect.FormatQuerySql<TEntity>("*", whereSql, orderSql, isOne);
+            //处理field
+            string fieldSql = "*";
+            if (field is DapperSql fSqlOrder)
+            {
+                fieldSql = fSqlOrder.Sql;
+                if (fSqlOrder.Parameters as object != null)
+                {
+                    var dynamicFields = GetDynamicFields(fSqlOrder.Parameters as object);
+                    var expandoObject = new ExpandoObject() as IDictionary<string, object>;
+                    dynamicFields.ForEach(p => expandoObject.Add(p.Name, p.Value));
+                    parameters.AddDynamicParams(expandoObject);
+                }
+            }
+            else if (field is string s)
+            {
+                fieldSql = s;
+            }
+
+            //处理join
+            string joinSql = null;
+            if (tablejoin is DapperSql jSqlOrder)
+            {
+                joinSql = jSqlOrder.Sql;
+                if (jSqlOrder.Parameters as object != null)
+                {
+                    var dynamicFields = GetDynamicFields(jSqlOrder.Parameters as object);
+                    var expandoObject = new ExpandoObject() as IDictionary<string, object>;
+                    dynamicFields.ForEach(p => expandoObject.Add(p.Name, p.Value));
+                    parameters.AddDynamicParams(expandoObject);
+                }
+            }
+            else if (field is string s)
+            {
+                joinSql = s;
+            }
+
+            var sql = Dialect.FormatQuerySql<TEntity>(fieldSql, whereSql, orderSql, joinSql, isOne);
             return (sql, parameters);
         }
 
         public TEntity QueryOne<TEntity>(dynamic where, dynamic order = null) where TEntity : class
         {
-            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, true);
+            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, true, null, null);
             if (string.IsNullOrEmpty(sql))
             {
                 throw new DapperException("SQL异常！");
@@ -142,7 +179,7 @@ namespace Ku.Core.Extensions.Dapper
 
         public async Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
         {
-            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, true);
+            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, true, null, null);
             if (string.IsNullOrEmpty(sql))
             {
                 throw new DapperException("SQL异常！");
@@ -153,7 +190,7 @@ namespace Ku.Core.Extensions.Dapper
 
         public IEnumerable<TEntity> QueryList<TEntity>(dynamic where, dynamic order = null) where TEntity : class
         {
-            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, false);
+            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, false, null, null);
             if (string.IsNullOrEmpty(sql))
             {
                 throw new DapperException("SQL异常！");
@@ -164,7 +201,7 @@ namespace Ku.Core.Extensions.Dapper
 
         public async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
         {
-            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, false);
+            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, false, null, null);
             if (string.IsNullOrEmpty(sql))
             {
                 throw new DapperException("SQL异常！");
@@ -173,55 +210,91 @@ namespace Ku.Core.Extensions.Dapper
             return await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
         }
 
+        #endregion
+
+        #region 分页查询
+
         public (int count, IEnumerable<TEntity> items) QueryPage<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class
         {
-            //取得总件数
-            var count = QueryCount<TEntity>(where as object);
-            if (count == 0)
-            {
-                return (0, new TEntity[] { });
-            }
-
-            if (count <= ((page - 1) * size))
-            {
-                return (count, new TEntity[] { });
-            }
-
-            (string sql, DynamicParameters parameters) = _QueryPage<TEntity>(page, size, where as object, order as object);
+            (string sql, string sqlCount, DynamicParameters parameters) = _QueryPage(page, size, "*", Dialect.FormatTableName<TEntity>(), where as object, order as object);
             if (string.IsNullOrEmpty(sql))
             {
                 throw new DapperException("SQL异常！");
             }
-            _logger.LogDebug("[Dapper]Query:" + sql);
+            _logger.LogDebug("[Dapper]QueryPageAsync:" + sqlCount);
+            var count = (Connection.ExecuteScalar<int?>(sqlCount, parameters, DbTransaction, Timeout)).GetValueOrDefault();
+            if (count == 0 || count <= ((page - 1) * size)) return (count, new TEntity[] { });
+
+            _logger.LogDebug("[Dapper]QueryPageAsync:" + sql);
             var items = Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
+            return (count, items);
+        }
+
+        public (int count, IEnumerable<TReturn> items) QueryPage<TFirst, TSecond, TReturn>(int page, int size, string feild, string tableJoin, dynamic where, dynamic order, Func<TFirst, TSecond, TReturn> map, string splitOn = "Id")
+        {
+            (string sql, string sqlCount, DynamicParameters parameters) = _QueryPage(page, size, feild, tableJoin, where as object, order as object);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
+            _logger.LogDebug("[Dapper]QueryPage:" + sqlCount);
+            var count = (Connection.ExecuteScalar<int?>(sqlCount, parameters, DbTransaction, Timeout)).GetValueOrDefault();
+            if (count == 0 || count <= ((page - 1) * size)) return (count, new TReturn[] { });
+
+            _logger.LogDebug("[Dapper]QueryPage:" + sql);
+            var items = Connection.Query(sql, map, parameters, DbTransaction, true, splitOn);
             return (count, items);
         }
 
         public async Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class
         {
-            //取得总件数
-            var count = await QueryCountAsync<TEntity>(where as object);
-            if (count == 0)
-            {
-                return (0, new TEntity[] { });
-            }
-
-            if (count <= ((page - 1) * size))
-            {
-                return (count, new TEntity[] { });
-            }
-
-            (string sql, DynamicParameters parameters) = _QueryPage<TEntity>(page, size, where as object, order as object);
+            (string sql, string sqlCount, DynamicParameters parameters) = _QueryPage(page, size, "*", Dialect.FormatTableName<TEntity>(), where as object, order as object);
             if (string.IsNullOrEmpty(sql))
             {
                 throw new DapperException("SQL异常！");
             }
-            _logger.LogDebug("[Dapper]QueryAsync:" + sql);
+            _logger.LogDebug("[Dapper]QueryPageAsync:" + sqlCount);
+            var count = (await Connection.ExecuteScalarAsync<int?>(sqlCount, parameters, DbTransaction, Timeout)).GetValueOrDefault();
+            if (count == 0 || count <= ((page - 1) * size)) return (count, new TEntity[] { });
+
+            _logger.LogDebug("[Dapper]QueryPageAsync:" + sql);
             var items = await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
             return (count, items);
         }
 
-        private (string sql, DynamicParameters parameters) _QueryPage<TEntity>(int page, int size, object where, object order) where TEntity : class
+        public async Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, string feild, string tableJoin, dynamic where, dynamic order)
+        {
+            (string sql, string sqlCount, DynamicParameters parameters) = _QueryPage(page, size, feild, tableJoin, where as object, order as object);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
+            _logger.LogDebug("[Dapper]QueryPageAsync:" + sqlCount);
+            var count = (await Connection.ExecuteScalarAsync<int?>(sqlCount, parameters, DbTransaction, Timeout)).GetValueOrDefault();
+            if (count == 0 || count <= ((page - 1) * size)) return (count, new TEntity[] { });
+
+            _logger.LogDebug("[Dapper]QueryPageAsync:" + sql);
+            var items = await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
+            return (count, items);
+        }
+
+        public async Task<(int count, IEnumerable<TReturn> items)> QueryPageAsync<TFirst, TSecond, TReturn>(int page, int size, string feild, string tableJoin, dynamic where, dynamic order, Func<TFirst, TSecond, TReturn> map, string splitOn = "Id")
+        {
+            (string sql, string sqlCount, DynamicParameters parameters) = _QueryPage(page, size, feild, tableJoin, where as object, order as object);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
+            _logger.LogDebug("[Dapper]QueryPageAsync:" + sqlCount);
+            var count = (await Connection.ExecuteScalarAsync<int?>(sqlCount, parameters, DbTransaction, Timeout)).GetValueOrDefault();
+            if (count == 0 || count <= ((page - 1) * size)) return (count, new TReturn[] { });
+
+            _logger.LogDebug("[Dapper]QueryPageAsync:" + sql);
+            var items = await Connection.QueryAsync(sql, map, parameters, DbTransaction, true, splitOn);
+            return (count, items);
+        }
+
+        private (string sql, string sqlCount, DynamicParameters parameters) _QueryPage(int page, int size, string feild, string tableJoin, object where, object order)
         {
             DynamicParameters parameters;
 
@@ -254,15 +327,21 @@ namespace Ku.Core.Extensions.Dapper
             {
                 orderSql = Dialect.FormatOrderSql(null, s);
             }
-            else if(order != null)
+            else if (order != null)
             {
                 Dictionary<string, string> dict = new Dictionary<string, string>();
                 GetDynamicFields(order).ForEach(item => dict.Add(item.Name, (string)item.Value));
                 orderSql = Dialect.FormatOrderSql(dict, null);
             }
 
-            var sql = Dialect.FormatQueryPageSql<TEntity>(page, size, "*", whereSql, orderSql);
-            return (sql, parameters);
+            //取得总件数SQL
+            var sqlCnt = $"SELECT COUNT(1) FROM {tableJoin}";
+            sqlCnt += whereSql ?? "";
+
+            var sql = Dialect.FormatQueryPageSql(page, size, $"SELECT {feild} FROM {tableJoin}{whereSql}{orderSql}");
+
+            //var sql = Dialect.FormatQueryPageSql<TEntity>(page, size, "*", whereSql, orderSql);
+            return (sql, sqlCnt, parameters);
         }
 
         #endregion
@@ -826,5 +905,10 @@ namespace Ku.Core.Extensions.Dapper
         }
 
         #endregion
+
+        public void Log(string method, string message)
+        {
+            _logger.LogDebug($"[Dapper]{method}:{message}");
+        }
     }
 }

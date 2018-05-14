@@ -11,6 +11,8 @@ namespace Ku.Core.Extensions.Dapper
     {
         IDbConnection Connection { get; }
 
+        int? Timeout { get; }
+
         IDbTransaction DbTransaction { get; }
 
         ISqlDialect Dialect { set; get; }
@@ -37,9 +39,19 @@ namespace Ku.Core.Extensions.Dapper
 
         Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
 
+        #endregion
+
+        #region 分页查询
+
         (int count, IEnumerable<TEntity> items) QueryPage<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class;
 
+        (int count, IEnumerable<TReturn> items) QueryPage<TFirst, TSecond, TReturn>(int page, int size, string feild, string tableJoin, dynamic where, dynamic order, Func<TFirst, TSecond, TReturn> map, string splitOn = "Id");
+
         Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, dynamic where, dynamic order = null) where TEntity : class;
+
+        Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(int page, int size, string feild, string tableJoin, dynamic where, dynamic order);
+
+        Task<(int count, IEnumerable<TReturn> items)> QueryPageAsync<TFirst, TSecond, TReturn>(int page, int size, string feild, string tableJoin, dynamic where, dynamic order = null, Func<TFirst, TSecond, TReturn> map = null, string splitOn = "Id");
 
         #endregion
 
@@ -128,5 +140,7 @@ namespace Ku.Core.Extensions.Dapper
         Task<int> RestoreAsync<TEntity>(dynamic where) where TEntity : class;
 
         #endregion
+
+        void Log(string method, string message);
     }
 }

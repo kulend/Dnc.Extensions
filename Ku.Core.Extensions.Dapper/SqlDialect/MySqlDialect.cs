@@ -17,7 +17,7 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             get { return '`'; }
         }
 
-        public override string FormatQuerySql<TEntity>(string field, string where, string order, bool isOne)
+        public override string FormatQuerySql<TEntity>(string field, string where, string order, string tableJoin, bool isOne)
         {
             var sql = new StringBuilder("SELECT ");
             if (string.IsNullOrEmpty(field))
@@ -25,7 +25,15 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
                 field = "*";
             }
             sql.Append(field);
-            sql.Append(" FROM " + FormatTableName<TEntity>());
+            sql.Append(" FROM ");
+            if (string.IsNullOrEmpty(tableJoin))
+            {
+                sql.Append(FormatTableName<TEntity>());
+            }
+            else
+            {
+                sql.Append(tableJoin);
+            }
 
             if (!string.IsNullOrEmpty(where))
             {
@@ -67,6 +75,11 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             sql.Append($" LIMIT {(page - 1) * rows},{rows}");
 
             return sql.ToString();
+        }
+
+        public override string FormatQueryPageSql(int page, int rows, string sql)
+        {
+            return sql + $" LIMIT {(page - 1) * rows},{rows}";
         }
     }
 }

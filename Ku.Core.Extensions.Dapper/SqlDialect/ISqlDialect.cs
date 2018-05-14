@@ -36,6 +36,8 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
 
         string FormatOrderSql(Dictionary<string, string> fields, string orderSql);
 
-        string FormatQuerySql<TEntity>(string fieldSql, string where, string order, bool isOne) where TEntity : class;
+        string FormatQuerySql<TEntity>(string fieldSql, string where, string order, string tableJoin, bool isOne) where TEntity : class;
+
+        string FormatQueryPageSql(int page, int rows, string sql);
     }
 }

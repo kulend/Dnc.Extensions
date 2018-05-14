@@ -210,7 +210,12 @@ namespace Ku.Core.Extensions.Dapper.SqlDialect
             return " ORDER BY " + sql;
         }
 
-        public virtual string FormatQuerySql<TEntity>(string fieldSql,string where, string order, bool isOne) where TEntity : class
+        public virtual string FormatQuerySql<TEntity>(string fieldSql,string where, string order, string tableJoin, bool isOne) where TEntity : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual string FormatQueryPageSql(int page, int rows, string sql)
         {
             throw new NotImplementedException();
         }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using static Dapper.SqlMapper;
 
 namespace Ku.Core.Extensions.Dapper
 {
@@ -155,6 +156,92 @@ namespace Ku.Core.Extensions.Dapper
         //public static async Task<IEnumerable<T>> QueryAsync<T>(this IDapper dapper, CommandDefinition command)
         //{
 
+        //}
+
+        public static GridReader QueryMultiple(this IDapper dapper, string sql, object param = null)
+        {
+            return dapper.Connection.QueryMultiple(sql, param, dapper.DbTransaction, dapper.Timeout, null);
+        }
+
+        public static async Task<GridReader> QueryMultipleAsync(this IDapper dapper, string sql, object param = null)
+        {
+            return await dapper.Connection.QueryMultipleAsync(sql, param, dapper.DbTransaction, dapper.Timeout, null);
+        }
+
+        //public static (int count, IEnumerable<T> items) QueryPage<T>(this IDapper dapper, int page, int size, string sql, string sqlCount, object param, bool buffered = true)
+        //{
+        //    //取得件数
+        //    var count = dapper.Connection.ExecuteScalar<int?>(sqlCount, param, dapper.DbTransaction, dapper.Timeout).GetValueOrDefault();
+        //    if (count == 0)
+        //    {
+        //        return (0, new T[] { });
+        //    }
+
+        //    if (count <= ((page - 1) * size))
+        //    {
+        //        return (count, new T[] { });
+        //    }
+
+        //    var items = dapper.Connection.Query<T>(dapper.Dialect.FormatQueryPageSql(page, size, sql), param, dapper.DbTransaction, buffered);
+        //    return (count, items);
+        //}
+
+        //public static async Task<(int count, IEnumerable<T> items)> QueryPageAsync<T>(this IDapper dapper, int page, int size, string sql, string sqlCount, object param)
+        //{
+        //    //取得件数
+        //    var count = (await dapper.Connection.ExecuteScalarAsync<int?>(sqlCount, param, dapper.DbTransaction, dapper.Timeout)).GetValueOrDefault();
+        //    if (count == 0)
+        //    {
+        //        return (0, new T[] { });
+        //    }
+
+        //    if (count <= ((page - 1) * size))
+        //    {
+        //        return (count, new T[] { });
+        //    }
+
+        //    var items = await dapper.Connection.QueryAsync<T>(dapper.Dialect.FormatQueryPageSql(page, size, sql), param, dapper.DbTransaction, dapper.Timeout);
+        //    return (count, items);
+        //}
+
+        //public static (int count, IEnumerable<TReturn> items) QueryPage<TFirst, TSecond, TReturn>(this IDapper dapper, int page, int size, string sql, string sqlCount, Func<TFirst, TSecond, TReturn> map, object param = null, bool buffered = true, string splitOn = "Id")
+        //{
+        //    //取得件数
+        //    dapper.Log("ExecuteScalar", sqlCount);
+        //    var count = dapper.Connection.ExecuteScalar<int?>(sqlCount, param, dapper.DbTransaction, dapper.Timeout).GetValueOrDefault();
+        //    if (count == 0)
+        //    {
+        //        return (0, new TReturn[] { });
+        //    }
+
+        //    if (count <= ((page - 1) * size))
+        //    {
+        //        return (count, new TReturn[] { });
+        //    }
+        //    var s = dapper.Dialect.FormatQueryPageSql(page, size, sql);
+        //    dapper.Log("Query", s);
+        //    var items = dapper.Connection.Query(s, map, param, dapper.DbTransaction, buffered, splitOn);
+        //    return (count, items);
+        //}
+
+        //public static async Task<(int count, IEnumerable<TReturn> items)> QueryPageAsync<TFirst, TSecond, TReturn>(this IDapper dapper, int page, int size, string sql, string sqlCount, Func<TFirst, TSecond, TReturn> map, object param = null, bool buffered = true, string splitOn = "Id")
+        //{
+        //    //取得件数
+        //    dapper.Log("ExecuteScalarAsync", sqlCount);
+        //    var count = (await dapper.Connection.ExecuteScalarAsync<int?>(sqlCount, param, dapper.DbTransaction, dapper.Timeout)).GetValueOrDefault();
+        //    if (count == 0)
+        //    {
+        //        return (0, new TReturn[] { });
+        //    }
+
+        //    if (count <= ((page - 1) * size))
+        //    {
+        //        return (count, new TReturn[] { });
+        //    }
+        //    var s = dapper.Dialect.FormatQueryPageSql(page, size, sql);
+        //    dapper.Log("QueryAsync", s);
+        //    var items = await dapper.Connection.QueryAsync(s, map, param, dapper.DbTransaction, buffered, splitOn);
+        //    return (count, items);
         //}
 
     }
