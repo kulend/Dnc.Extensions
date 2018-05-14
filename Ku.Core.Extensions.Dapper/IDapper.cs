@@ -11,6 +11,8 @@ namespace Ku.Core.Extensions.Dapper
     {
         IDbConnection Connection { get; }
 
+        IDbTransaction DbTransaction { get; }
+
         ISqlDialect Dialect { set; get; }
 
         #region 事务

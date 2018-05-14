@@ -20,7 +20,7 @@ namespace Ku.Core.Extensions.Dapper
 
         private DapperOptions _options;
         private ITransation _transaction;
-        private IDbTransaction DbTransaction { get { return _transaction?.Transaction; } }
+        public IDbTransaction DbTransaction { get { return _transaction?.Transaction; } }
 
         public int? Timeout { set; get; } = null;
 
