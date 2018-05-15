@@ -31,13 +31,17 @@ namespace Ku.Core.Extensions.Dapper
 
         #region 查询
 
+        #region QueryOne
+
         TEntity QueryOne<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
 
-        Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
+        #endregion
 
-        IEnumerable<TEntity> QueryList<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
+        #region QueryOneAsync
 
-        Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
+        Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class; 
+
+        #endregion
 
         #endregion
 

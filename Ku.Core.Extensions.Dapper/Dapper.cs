@@ -86,7 +86,100 @@ namespace Ku.Core.Extensions.Dapper
 
         #region 查询
 
-        private (string sql, DynamicParameters parameters) _Query<TEntity>(object where, object order, bool isOne, object field, object tablejoin) where TEntity : class
+        #region QueryOne
+
+        public TEntity QueryOne<TEntity>(dynamic where, dynamic order = null) where TEntity : class
+        {
+            (string sql, DynamicParameters parameters) = _Query("*", Dialect.FormatTableName<TEntity>(), where as object, order as object, true);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
+            _logger.LogDebug("[Dapper]QueryOne:" + sql);
+            return Connection.QueryFirstOrDefault<TEntity>(sql, parameters, DbTransaction, Timeout);
+        }
+
+        #endregion
+
+        #region QueryOneAsync
+
+        public async Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
+        {
+            (string sql, DynamicParameters parameters) = _Query("*", Dialect.FormatTableName<TEntity>(), where as object, order as object, true);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
+            _logger.LogDebug("[Dapper]QueryOneAsync:" + sql);
+            return await Connection.QueryFirstOrDefaultAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
+        } 
+
+        #endregion
+
+        //#region QueryList
+
+        //public IEnumerable<TEntity> QueryList<TEntity>(dynamic where, dynamic order = null) where TEntity : class
+        //{
+        //    (string sql, DynamicParameters parameters) = _Query("*", Dialect.FormatTableName<TEntity>(), where as object, order as object, false);
+        //    if (string.IsNullOrEmpty(sql))
+        //    {
+        //        throw new DapperException("SQL异常！");
+        //    }
+        //    _logger.LogDebug("[Dapper]QueryList:" + sql);
+        //    return Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
+        //}
+
+        //public IEnumerable<TEntity> QueryList<TEntity>(string field, dynamic tableJoin, dynamic where, dynamic order = null) where TEntity : class
+        //{
+        //    (string sql, DynamicParameters parameters) = _Query(field, tableJoin as object, where as object, order as object, false);
+        //    if (string.IsNullOrEmpty(sql))
+        //    {
+        //        throw new DapperException("SQL异常！");
+        //    }
+        //    _logger.LogDebug("[Dapper]QueryList:" + sql);
+        //    return Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
+        //}
+
+        //#endregion
+
+        //#region QueryListAsync
+
+        //public async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
+        //{
+        //    (string sql, DynamicParameters parameters) = _Query("*", Dialect.FormatTableName<TEntity>(), where as object, order as object, false);
+        //    if (string.IsNullOrEmpty(sql))
+        //    {
+        //        throw new DapperException("SQL异常！");
+        //    }
+        //    _logger.LogDebug("[Dapper]QueryAsync:" + sql);
+        //    return await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
+        //}
+
+        //public async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(string field, dynamic tableJoin, dynamic where, dynamic order = null)
+        //{
+        //    (string sql, DynamicParameters parameters) = _Query(field, tableJoin as object, where as object, order as object, false);
+        //    if (string.IsNullOrEmpty(sql))
+        //    {
+        //        throw new DapperException("SQL异常！");
+        //    }
+        //    _logger.LogDebug("[Dapper]QueryAsync:" + sql);
+        //    return await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
+        //}
+
+        //public async Task<IEnumerable<TReturn>> QueryListAsync<TFirst, TSecond, TReturn>(string field, dynamic tableJoin, dynamic where, dynamic order, Func<TFirst, TSecond, TReturn> map, string splitOn = "Id")
+        //{
+        //    (string sql, DynamicParameters parameters) = _Query(field, tableJoin as object, where as object, order as object, false);
+        //    if (string.IsNullOrEmpty(sql))
+        //    {
+        //        throw new DapperException("SQL异常！");
+        //    }
+        //    _logger.LogDebug("[Dapper]QueryListAsync:" + sql);
+        //    return await Connection.QueryAsync(sql, map, parameters, DbTransaction, true, splitOn);
+        //}
+
+        //#endregion
+
+        private (string sql, DynamicParameters parameters) _Query(string field, object tableJoin, object where, object order, bool isOne)
         {
             DynamicParameters parameters;
 
@@ -96,7 +189,8 @@ namespace Ku.Core.Extensions.Dapper
             {
                 whereSql = Dialect.FormatWhereSql(null, dSql.Sql);
                 parameters = new DynamicParameters(dSql.Parameters as object);
-            } else if (where is string s)
+            }
+            else if (where is string s)
             {
                 whereSql = Dialect.FormatWhereSql(null, s);
                 parameters = new DynamicParameters();
@@ -125,89 +219,23 @@ namespace Ku.Core.Extensions.Dapper
                 orderSql = Dialect.FormatOrderSql(dict, null);
             }
 
-            //处理field
-            string fieldSql = "*";
-            if (field is DapperSql fSqlOrder)
+            //处理tableJoin
+            string tableJoinSql = null;
+            if (tableJoin is string str1)
             {
-                fieldSql = fSqlOrder.Sql;
-                if (fSqlOrder.Parameters as object != null)
-                {
-                    var dynamicFields = GetDynamicFields(fSqlOrder.Parameters as object);
-                    var expandoObject = new ExpandoObject() as IDictionary<string, object>;
-                    dynamicFields.ForEach(p => expandoObject.Add(p.Name, p.Value));
-                    parameters.AddDynamicParams(expandoObject);
-                }
+                tableJoinSql = str1;
             }
-            else if (field is string s)
+            else if (tableJoin is DapperSql ds)
             {
-                fieldSql = s;
+                tableJoinSql = ds.Sql;
+                var dynamicFields = GetDynamicFields(ds.Parameters as object);
+                var expandoObject = new ExpandoObject() as IDictionary<string, object>;
+                dynamicFields.ForEach(p => expandoObject.Add(p.Name, p.Value));
+                parameters.AddDynamicParams(expandoObject);
             }
 
-            //处理join
-            string joinSql = null;
-            if (tablejoin is DapperSql jSqlOrder)
-            {
-                joinSql = jSqlOrder.Sql;
-                if (jSqlOrder.Parameters as object != null)
-                {
-                    var dynamicFields = GetDynamicFields(jSqlOrder.Parameters as object);
-                    var expandoObject = new ExpandoObject() as IDictionary<string, object>;
-                    dynamicFields.ForEach(p => expandoObject.Add(p.Name, p.Value));
-                    parameters.AddDynamicParams(expandoObject);
-                }
-            }
-            else if (field is string s)
-            {
-                joinSql = s;
-            }
-
-            var sql = Dialect.FormatQuerySql<TEntity>(fieldSql, whereSql, orderSql, joinSql, isOne);
+            var sql = Dialect.FormatQuerySql(field, tableJoinSql, whereSql, orderSql, isOne);
             return (sql, parameters);
-        }
-
-        public TEntity QueryOne<TEntity>(dynamic where, dynamic order = null) where TEntity : class
-        {
-            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, true, null, null);
-            if (string.IsNullOrEmpty(sql))
-            {
-                throw new DapperException("SQL异常！");
-            }
-
-            _logger.LogDebug("[Dapper]QueryFirstOrDefault:" + sql);
-            return Connection.QueryFirstOrDefault<TEntity>(sql, parameters, DbTransaction, Timeout);
-        }
-
-        public async Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
-        {
-            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, true, null, null);
-            if (string.IsNullOrEmpty(sql))
-            {
-                throw new DapperException("SQL异常！");
-            }
-            _logger.LogDebug("[Dapper]QueryFirstOrDefaultAsync:" + sql);
-            return await Connection.QueryFirstOrDefaultAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
-        }
-
-        public IEnumerable<TEntity> QueryList<TEntity>(dynamic where, dynamic order = null) where TEntity : class
-        {
-            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, false, null, null);
-            if (string.IsNullOrEmpty(sql))
-            {
-                throw new DapperException("SQL异常！");
-            }
-            _logger.LogDebug("[Dapper]Query:" + sql);
-            return Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
-        }
-
-        public async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
-        {
-            (string sql, DynamicParameters parameters) = _Query<TEntity>(where as object, order as object, false, null, null);
-            if (string.IsNullOrEmpty(sql))
-            {
-                throw new DapperException("SQL异常！");
-            }
-            _logger.LogDebug("[Dapper]QueryAsync:" + sql);
-            return await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
         }
 
         #endregion
@@ -815,7 +843,7 @@ namespace Ku.Core.Extensions.Dapper
 
         private static readonly ConcurrentDictionary<string, IEnumerable<PropertyInfo>> _fieldCache = new ConcurrentDictionary<string, IEnumerable<PropertyInfo>>();
 
-        private static List<DapperDynamicField> GetDynamicFields(object obj)
+        internal static List<DapperDynamicField> GetDynamicFields(object obj)
         {
             if (obj == null)
             {
