@@ -487,7 +487,7 @@ namespace Ku.Core.Extensions.Dapper
         {
             if (entitys == null || !entitys.Any())
             {
-                throw new DapperException("插入的数据不能为空！");
+                return 0;
             }
             var fields = GetDynamicFields(entitys.First()).Select(x => x.Name).ToList();
             var sql = Dialect.FormatInsertSql<TEntity>(fields);
@@ -751,7 +751,6 @@ namespace Ku.Core.Extensions.Dapper
                 {
                     sql = Dialect.FormatDeleteSql<TEntity>(null, dSql.Sql);
                     parameters = new DynamicParameters(dSql.Parameters as object);
-                    parameters.Add(attr.Field, attr.DeletedValue);
                 }
                 else
                 {
@@ -759,7 +758,6 @@ namespace Ku.Core.Extensions.Dapper
                     var fields = GetDynamicFields(where).Select(x => x.Name).ToList();
 
                     sql = Dialect.FormatDeleteSql<TEntity>(fields, null);
-                    parameters.Add(attr.Field, attr.DeletedValue);
                 }
             }
             else

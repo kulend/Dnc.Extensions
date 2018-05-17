@@ -9,7 +9,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.Configure(options);
             services.AddTransient<Ku.Core.Extensions.Dapper.IDapper, Ku.Core.Extensions.Dapper.Dapper>();
-
             return services;
         }
     }
