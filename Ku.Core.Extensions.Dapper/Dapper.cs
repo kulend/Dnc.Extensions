@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
@@ -893,7 +894,7 @@ namespace Ku.Core.Extensions.Dapper
             IEnumerable<PropertyInfo> properties;
             if (!_fieldCache.TryGetValue(key, out properties))
             {
-                properties = obj.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public).Where(x => !x.GetAccessors()[0].IsVirtual);
+                properties = obj.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public).Where(x => !x.GetAccessors()[0].IsVirtual && x.GetCustomAttribute<NotMappedAttribute>() == null);
                 _fieldCache.TryAdd(key, properties);
             }
 
