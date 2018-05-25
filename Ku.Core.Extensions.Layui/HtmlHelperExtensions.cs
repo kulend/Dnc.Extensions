@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 {
     public static class HtmlHelperExtensions
     {
-        public static MvcForm BeginForm<TModel>(this IHtmlHelper htmlHelper, string action)
+        public static MvcForm BeginForm<TModel>(this IHtmlHelper htmlHelper, string action = "")
         {
             if (htmlHelper == null)
             {
