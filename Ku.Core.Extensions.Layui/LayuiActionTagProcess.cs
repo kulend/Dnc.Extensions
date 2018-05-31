@@ -63,5 +63,6 @@ namespace Ku.Core.Extensions.Layui
             }
             output.Content.SetHtmlContent(content);
         }
+
     }
 }

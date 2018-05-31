@@ -37,7 +37,7 @@ namespace Ku.Core.Extensions.Layui.Test
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
+                //app.UseBrowserLink();
             }
             else
             {
