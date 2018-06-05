@@ -52,10 +52,22 @@ namespace Ku.Core.Extensions.Layui
             output.Attributes.SetAttribute("type", type);
             output.Attributes.SetAttribute("title", helper.Title ?? helper.Text ?? "");
 
+            if ("刷新".Equals(helper.Title) && string.IsNullOrEmpty(helper.Icon))
+            {
+                helper.Icon = "layui-icon-refresh";
+            }
+
             var content = "";
             if (!string.IsNullOrEmpty(helper.Icon))
             {
-                content = $"<i class=\"layui-icon\">{helper.Icon}</i>";
+                if (helper.Icon.StartsWith("layui-icon"))
+                {
+                    content = $"<i class=\"layui-icon {helper.Icon}\"></i>";
+                }
+                else
+                {
+                    content = $"<i class=\"layui-icon\">{helper.Icon}</i>";
+                }
             }
             if (!string.IsNullOrEmpty(helper.Text))
             {
