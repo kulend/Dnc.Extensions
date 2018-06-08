@@ -8,6 +8,8 @@ namespace Ku.Core.Extensions.DbMigration
     {
         internal List<string> PocoAssemblys { set; get; } = new List<string>();
 
+        public string ConnectionString { set; get; }
+
         public void AddPocoAssemblys(params string[] assembly)
         {
             if (PocoAssemblys == null)
@@ -16,6 +18,5 @@ namespace Ku.Core.Extensions.DbMigration
             }
             PocoAssemblys.AddRange(assembly);
         }
-
     }
 }

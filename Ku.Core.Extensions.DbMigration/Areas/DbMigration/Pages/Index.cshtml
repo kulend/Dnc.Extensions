@@ -36,6 +36,21 @@
             </div>
         </div>
     </div>
+    <script type="text/html" id="tp-Nullable">
+        {{#  if(d.Nullable == d.DbNullable){ }}
+            {{# if(d.Nullable){ }}
+            <i class="layui-icon">&#xe605;</i> 
+            {{# }else{ }}
+            <i class="layui-icon">&#x1006;</i> 
+            {{# } }}
+        {{#  } else { }}
+            {{# if(d.Nullable){ }}
+            <i class="layui-icon" style="color: #FF5722">&#xe605;</i> 
+            {{# }else{ }}
+            <i class="layui-icon" style="color: #FF5722">&#x1006;</i> 
+            {{# } }}
+        {{#  } }}
+    </script>
     <script src="~/lib/layui/layui.all.js"></script>
     <script>
         layui.use('table', function () {
@@ -53,9 +68,9 @@
                     , cols: [[ //表头
                         { field: 'Name', title: '字段', width: 200 }
                         , { field: 'Description', title: '说明', width: 200 }
-                        , { field: 'Type', title: '类型', width: 120 }
-                        , { field: 'Nullable', title: '可空', width: 80 }
-                        , { field: 'IsKey', title: '主键', width: 80 }
+                        , { field: 'Type', title: '类型', width: 140 }
+                        , { field: 'Nullable', title: '可空', width: 80, templet: '#tp-Nullable'  }
+                        , { field: 'IsKey', title: '主键', width: 80, templet: '<div>{{# if(d.IsKey){ }} <i class="layui-icon">&#xe605;</i> {{# }else{ }}  {{# } }}</div>' }
                     ]]
                 });
             });
