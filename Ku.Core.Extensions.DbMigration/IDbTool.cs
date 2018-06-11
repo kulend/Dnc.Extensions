@@ -7,6 +7,10 @@ namespace Ku.Core.Extensions.DbMigration
 {
     public interface IDbTool
     {
+        IEnumerable<DbTableInfo> GetTables();
+
+        Task<IEnumerable<DbTableInfo>> GetTablesAsync();
+
         Task<IEnumerable<DbFieldInfo>> GetTableFieldsAsync(string tableName);
     }
 }

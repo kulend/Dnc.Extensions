@@ -20,35 +20,79 @@
     <div class="layui-container">
         <div class="layui-row">
             <div class="layui-collapse">
-                @foreach (var typ in Model.Types)
+                @foreach (var poco in Model.Pocos)
                 {
                     <div class="layui-colla-item">
-                        <h2 class="layui-colla-title">@typ.FullName</h2>
+                        <h2 class="layui-colla-title">@poco.Name [@poco.TableName]</h2>
                         <div class="layui-colla-content">
                             <div>
-                                <button class="layui-btn layui-btn-sm btn-load" data-guid="@typ.GUID" data-poco="@typ.FullName" data-assembly="@typ.Assembly.FullName">加载</button>
+                                <button class="layui-btn layui-btn-sm btn-load" data-guid="@poco.GUID" data-poco="@poco.Name" data-assembly="@poco.Assembly">加载</button>
                             </div>
-                            <table class="layui-table" id="table_@typ.GUID">
-                            </table>
+                            <table class="layui-table" id="table_@poco.GUID"></table>
                         </div>
                     </div>
                 }
             </div>
         </div>
     </div>
+    <script type="text/html" id="tp-Comment">
+        {{#  if(d.Comment == d.DbDComment){ }}
+            {{ d.Comment || '' }}
+        {{#  } else { }}
+            <label style="color: #FF5722">{{ d.DbComment || '' }} => {{ d.Comment || '' }}</label> 
+        {{#  } }}
+    </script>
+    <script type="text/html" id="tp-DataType">
+        {{#  if(d.DataType == d.DbDataType){ }}
+            {{ d.DataType }}
+        {{#  } else { }}
+            <label style="color: #FF5722">{{ d.DbDataType }} => {{ d.DataType }}</label> 
+        {{#  } }}
+    </script>
     <script type="text/html" id="tp-Nullable">
         {{#  if(d.Nullable == d.DbNullable){ }}
             {{# if(d.Nullable){ }}
-            <i class="layui-icon">&#xe605;</i> 
+            <i class="layui-icon">&#xe605;</i>
             {{# }else{ }}
-            <i class="layui-icon">&#x1006;</i> 
+            <i class="layui-icon">&#x1006;</i>
             {{# } }}
         {{#  } else { }}
-            {{# if(d.Nullable){ }}
-            <i class="layui-icon" style="color: #FF5722">&#xe605;</i> 
+            <label style="color: #FF5722">
+            {{# if(d.DbNullable){ }}            
+            <i class="layui-icon" style="color: #FF5722">&#xe605;</i>
             {{# }else{ }}
-            <i class="layui-icon" style="color: #FF5722">&#x1006;</i> 
+            <i class="layui-icon" style="color: #FF5722">&#x1006;</i>
             {{# } }}
+            => 
+            {{# if(d.Nullable){ }}
+            <i class="layui-icon" style="color: #FF5722">&#xe605;</i>
+            {{# }else{ }}
+            <i class="layui-icon" style="color: #FF5722">&#x1006;</i>
+            {{# } }}
+            </label> 
+        {{#  } }}
+    </script>
+    <script type="text/html" id="tp-Key">
+        {{#  if(d.IsKey == d.DbIsKey){ }}
+            {{# if(d.IsKey){ }}
+            <i class="layui-icon">&#xe605;</i>
+            {{# }else{ }}
+            <i class="layui-icon">&#x1006;</i>
+            {{# } }}
+        {{#  } else { }}
+            <label style="color: #FF5722">
+            {{# if(d.DbIsKey){ }}            
+            <i class="layui-icon" style="color: #FF5722">&#xe605;</i>
+            {{# }else{ }}
+            <i class="layui-icon" style="color: #FF5722">&#x1006;</i>
+            {{# } }}
+            => 
+            {{# if(d.IsKey){ }}
+            <i class="layui-icon" style="color: #FF5722">&#xe605;</i>
+            {{# }else{ }}
+            <i class="layui-icon" style="color: #FF5722">&#x1006;</i>
+            {{# } }}
+            </label> 
         {{#  } }}
     </script>
     <script src="~/lib/layui/layui.all.js"></script>
@@ -67,10 +111,10 @@
                     , page: false
                     , cols: [[ //表头
                         { field: 'Name', title: '字段', width: 200 }
-                        , { field: 'Description', title: '说明', width: 200 }
-                        , { field: 'Type', title: '类型', width: 140 }
-                        , { field: 'Nullable', title: '可空', width: 80, templet: '#tp-Nullable'  }
-                        , { field: 'IsKey', title: '主键', width: 80, templet: '<div>{{# if(d.IsKey){ }} <i class="layui-icon">&#xe605;</i> {{# }else{ }}  {{# } }}</div>' }
+                        , { field: 'Comment', title: '说明', width: 200, templet: '#tp-Comment' }
+                        , { field: 'DataType', title: '类型', width: 180, templet: '#tp-DataType' }
+                        , { field: 'Nullable', title: '可空', width: 120, templet: '#tp-Nullable'  }
+                        , { field: 'IsKey', title: '主键', width: 120, templet: '#tp-Key' }
                     ]]
                 });
             });

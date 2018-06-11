@@ -1,0 +1,121 @@
+﻿@page "{handler?}"
+@model Ku.Core.Extensions.DbMigration.DbMigration.Pages.PanelModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DbMigration</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="~/lib/layui/css/layui.css" />
+    <style>
+        .layui-card-header .btn-reload {
+            float:right;
+            margin-top:8px;
+        }
+        .poco-card .layui-card-body {
+            min-height:150px;
+        }
+        .poco-card .layui-card-body .reload-shade {
+            text-align: center;
+            margin: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        .poco-card .layui-card-body .reload-shade .layui-icon {
+            margin-top:20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="layui-container">
+        <div style="padding: 20px; background-color: #F2F2F2;">
+            @for (int row = 0; row < Math.Ceiling(Model.Pocos.Count / 3.0); row++)
+            {
+            <div class="layui-row layui-col-space15">
+                @for (int i = 0; i < 3; i++)
+                {
+                    var index = (row * 3) + i;
+                    if (Model.Pocos.Count <= index)
+                    {
+                        break;
+                    }
+                    var poco = Model.Pocos[index];
+                    <div class="layui-col-md4">
+                        <div class="layui-card poco-card">
+                            <div class="layui-card-header">
+                                <label title="@poco.FullName">
+                                    @if ("new".Equals(poco.Tag))
+                                    {
+                                        <span class="layui-badge layui-bg-green">NEW</span>
+                                    }
+                                    @poco.Name [@poco.TableName]
+                                </label>
+                                <button class="layui-btn layui-btn-xs layui-btn-primary btn-reload" data-guid="@poco.GUID" data-name="@poco.FullName" data-asm="@poco.Assembly">刷新</button>
+                            </div>
+                            <div class="layui-card-body">
+                                <div class="reload-shade"><i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i></div>
+                                <table id="tb_@poco.GUID"></table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            }
+        </div>
+    </div>
+    <script src="~/lib/layui/layui.all.js"></script>
+    <script>
+        layui.use(['table', 'element', 'layer'], function () {
+            var layer = layui.layer;
+            var table = layui.table;
+            var $ = layui.$;
+
+            $(".btn-reload").on("click", function () {
+                var $that = $(this);
+                var name = $(this).attr("data-name");
+                var asm = $(this).attr("data-asm");
+                var guid = $(this).attr("data-guid");
+                $.ajax({
+                    url: "Panel/Data",
+                    method: "get",
+                    dataType: "json",
+                    data: { poco: name, assembly: asm },
+                    beforeSend: function () {
+                    },
+                    success: function (r) {
+                        console.log(r);
+                        $that.closest(".layui-card").find(".layui-card-body .reload-shade").addClass("layui-hide");
+                        table.render({
+                            elem: '#tb_' + guid
+                            , data: r.data
+                            , page: false
+                            , size:'sm'
+                            , cols: [[
+                                { field: 'Name', title: '字段', width: 200 }
+                                , { field: 'Comment', title: '说明', width: 200 }
+                                , { field: 'DataType', title: '类型', width: 180 }
+                            ]]
+                        });
+                    },
+                    complete: function () {
+                    },
+                    error: function (xhr, status, errorThrown) {
+                        layer.msg(`调用出错：{${xhr.status}}${status}`);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

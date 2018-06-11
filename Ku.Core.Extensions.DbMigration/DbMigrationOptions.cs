@@ -10,6 +10,8 @@ namespace Ku.Core.Extensions.DbMigration
 
         public string ConnectionString { set; get; }
 
+        public string DataBaseSchema { set; get; }
+
         public void AddPocoAssemblys(params string[] assembly)
         {
             if (PocoAssemblys == null)

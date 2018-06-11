@@ -13,14 +13,14 @@ using Microsoft.Extensions.Options;
 namespace Ku.Core.Extensions.DbMigration.DbMigration.Pages
 {
     [IgnoreAntiforgeryToken(Order = 1001)]
-    public class IndexModel : PageModel
+    public class PanelModel : PageModel
     {
         private readonly IAssemblyLocator _locator;
         private static IList<Assembly> Assemblies;
         private readonly DbMigrationOptions _options;
         private readonly IDbTool _dbTool;
 
-        public IndexModel(IAssemblyLocator locator, IOptions<DbMigrationOptions> option, IDbTool dbTool)
+        public PanelModel(IAssemblyLocator locator, IOptions<DbMigrationOptions> option, IDbTool dbTool)
         {
             _locator = locator;
             _options = option.Value;
@@ -41,7 +41,8 @@ namespace Ku.Core.Extensions.DbMigration.DbMigration.Pages
                 foreach (var item in tps)
                 {
                     Poco model = new Poco();
-                    model.Name = item.FullName;
+                    model.Name = item.Name;
+                    model.FullName = item.FullName;
                     model.Assembly = item.Assembly.FullName;
                     model.GUID = item.GUID;
                     var attr = item.GetCustomAttribute<TableAttribute>();
@@ -53,6 +54,7 @@ namespace Ku.Core.Extensions.DbMigration.DbMigration.Pages
                     {
                         model.DbExist = true;
                         model.DbComment = table.Comment;
+                        model.Tag = "new";
                     }
                     Pocos.Add(model);
                 }
@@ -240,41 +242,5 @@ namespace Ku.Core.Extensions.DbMigration.DbMigration.Pages
             return theType;
         }
 
-    }
-
-    public class Poco
-    {
-        public string Name { set; get; }
-        public string FullName { set; get; }
-
-        public string TableName { set; get; }
-        public string Comment { set; get; }
-        public Guid GUID { set; get; }
-        public string Assembly { set; get; }
-
-        public bool DbExist { set; get; } = false;
-        public string DbComment { set; get; }
-
-        public string Tag { set; get; }
-    }
-
-    public class PocoField
-    {
-        public string Name { set; get; }
-
-        public string Comment { set; get; }
-        public string DbComment { set; get; }
-
-        public string DataType { set; get; }
-
-        public string DbDataType { set; get; }
-
-        public bool IsKey { set; get; }
-        public bool DbIsKey { set; get; }
-
-        public bool Nullable { set; get; }
-        public bool DbNullable { set; get; }
-
-        public string Diff { set; get; }
     }
 }
