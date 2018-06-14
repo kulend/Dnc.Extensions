@@ -35,6 +35,19 @@
         .poco-card .layui-card-body .reload-shade .layui-icon {
             margin-top:20px;
         }
+        .layui-table-cell {
+            padding: 0 5px;
+        }
+        .layui-form-checkbox span {
+            font-size: 12px;
+        }
+
+        .layui-form-checkbox[lay-skin=primary] i {
+            width: 12px;
+            height: 12px;
+            font-size: 10px;
+            line-height:12px;
+        }
     </style>
 </head>
 <body>
@@ -42,42 +55,78 @@
         <div style="padding: 20px; background-color: #F2F2F2;">
             @for (int row = 0; row < Math.Ceiling(Model.Pocos.Count / 3.0); row++)
             {
-            <div class="layui-row layui-col-space15">
-                @for (int i = 0; i < 3; i++)
-                {
-                    var index = (row * 3) + i;
-                    if (Model.Pocos.Count <= index)
+                <div class="layui-row layui-col-space15">
+                    @for (int i = 0; i < 3; i++)
                     {
-                        break;
-                    }
-                    var poco = Model.Pocos[index];
-                    <div class="layui-col-md4">
-                        <div class="layui-card poco-card">
-                            <div class="layui-card-header">
-                                <label title="@poco.FullName">
-                                    @if ("new".Equals(poco.Tag))
-                                    {
-                                        <span class="layui-badge layui-bg-green">NEW</span>
-                                    }
-                                    @poco.Name [@poco.TableName]
-                                </label>
-                                <button class="layui-btn layui-btn-xs layui-btn-primary btn-reload" data-guid="@poco.GUID" data-name="@poco.FullName" data-asm="@poco.Assembly">刷新</button>
-                            </div>
-                            <div class="layui-card-body">
-                                <div class="reload-shade"><i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i></div>
-                                <table id="tb_@poco.GUID"></table>
+                        var index = (row * 3) + i;
+                        if (Model.Pocos.Count <= index)
+                        {
+                            break;
+                        }
+                        var poco = Model.Pocos[index];
+                        <div class="layui-col-md4">
+                            <div class="layui-card poco-card">
+                                <div class="layui-card-header">
+                                    <label title="@poco.FullName">
+                                        @if ("new".Equals(poco.Tag))
+                                        {
+                                            <span class="layui-badge layui-bg-green">NEW</span>
+                                        }
+                                        @poco.Name [@poco.TableName]
+                                    </label>
+                                    <button class="layui-btn layui-btn-xs layui-btn-primary btn-reload" data-guid="@poco.GUID" data-name="@poco.FullName" data-asm="@poco.Assembly">刷新</button>
+                                </div>
+                                <div class="layui-card-body">
+                                    <div class="reload-shade"><i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i></div>
+                                    <table id="tb_@poco.GUID"></table>
+                                    <form class="layui-form" lay-filter="form_@poco.GUID">
+                                        <ul id="migrations_@poco.GUID">
+                                            <li><input type="checkbox" title="撒大苏打啊阿萨大阿萨大" lay-skin="primary" checked></li>
+                                            <li><input type="checkbox" title="撒大苏打啊阿萨大阿萨大" lay-skin="primary" checked></li>
+                                            <li><input type="checkbox" title="撒大苏打啊阿萨大阿萨大" lay-skin="primary" checked></li>
+                                            <li><input type="checkbox" title="撒大苏打啊阿萨大阿萨大" lay-skin="primary" checked></li>
+                                            <li><input type="checkbox" title="撒大苏打啊阿萨大阿萨大" lay-skin="primary" checked></li>
+                                        </ul>
+                                    </form>
+                                    <div>
+                                        <button class="layui-btn layui-btn-xs layui-btn-primary">添加</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                }
-            </div>
+                    }
+                </div>
             }
         </div>
     </div>
+    <script type="text/html" id="tp-Name">
+        {{# if(d.IsKey != d.DbIsKey){ }}
+            {{# if(d.IsKey){ }}
+            <i class="layui-icon layui-icon-rate-solid" style="font-size: 9px;color: #FF5722;"></i>
+            {{# }else{ }}
+            <i class="layui-icon layui-icon-rate" style="font-size: 9px;color: #FF5722;"></i>
+            {{# } }}
+        {{# }else{ }}
+            {{# if(d.IsKey){ }}
+            <i class="layui-icon layui-icon-rate-solid" style="font-size: 9px;color: #5FB878;"></i>
+            {{# }else{ }}
+            <span style="width:12px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            {{# } }}
+        {{# } }}
+        {{ d.Name }}
+    </script>
+    <script type="text/html" id="tp-Nullable">
+        {{# if(d.Nullable){ }}
+        <i class="layui-icon layui-icon-ok" style="{{# if(d.Nullable != d.DbNullable){ }}color: #FF5722;{{# } }}"></i>
+        {{# }else{ }}
+        <i class="layui-icon layui-icon-close" style="{{# if(d.Nullable != d.DbNullable){ }}color: #FF5722;{{# } }}"></i>
+        {{# } }}
+    </script>
     <script src="~/lib/layui/layui.all.js"></script>
     <script>
-        layui.use(['table', 'element', 'layer'], function () {
+        layui.use(['table', 'element', 'layer', 'form'], function () {
             var layer = layui.layer;
+            var form = layui.form;
             var table = layui.table;
             var $ = layui.$;
 
@@ -98,15 +147,24 @@
                         $that.closest(".layui-card").find(".layui-card-body .reload-shade").addClass("layui-hide");
                         table.render({
                             elem: '#tb_' + guid
-                            , data: r.data
+                            , data: r.items.data
                             , page: false
-                            , size:'sm'
+                            , limit: 999
+                            , size: 'sm'
                             , cols: [[
-                                { field: 'Name', title: '字段', width: 200 }
-                                , { field: 'Comment', title: '说明', width: 200 }
-                                , { field: 'DataType', title: '类型', width: 180 }
+                                { field: 'Name', title: '字段', width: 150, templet: '#tp-Name'  }
+                                , { field: 'DataType', title: '类型', width: 100 }
+                                , { field: 'Nullable', title: 'N', width: 40, align:'center', templet: '#tp-Nullable' }
                             ]]
                         });
+
+                        //migrations
+                        var html = [];
+                        for (var i = 0; i < r.migrations.length; i++) {
+                            html.push(`<li><input type="checkbox" title="${r.migrations[i]}" lay-skin="primary" checked></li>`);
+                        }
+                        $("#migrations_" + guid).html(html.join(""));
+                        form.render(null, 'form_' + guid);
                     },
                     complete: function () {
                     },

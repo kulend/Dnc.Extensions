@@ -68,7 +68,8 @@ namespace Ku.Core.Extensions.DbMigration.DbMigration.Pages
         {
             var asm = Assemblies.Single(x => x.FullName.Equals(assembly));
             var type = asm.DefinedTypes.Single(x => x.FullName.Equals(poco));
-            var properties = type.GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public).Where(x => !x.GetAccessors()[0].IsVirtual && x.GetCustomAttribute<NotMappedAttribute>() == null);
+            var properties = type.GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
+                .Where(x => !x.GetAccessors()[0].IsVirtual && x.GetCustomAttribute<NotMappedAttribute>() == null);
 
             var items = new List<PocoField>();
 
@@ -94,48 +95,76 @@ namespace Ku.Core.Extensions.DbMigration.DbMigration.Pages
                 items.Add(field);
             }
 
+            var migrations = new List<string>();
             //取得DB端信息
             var tableName = type.GetCustomAttribute<TableAttribute>()?.Name;
-
-            var fields = await _dbTool.GetTableFieldsAsync(tableName);
-            foreach (var item in items)
+            var table = _dbTool.GetTables().SingleOrDefault(x => x.TableName.Equals(tableName, StringComparison.OrdinalIgnoreCase));
+            if (table == null)
             {
-                List<string> diff = new List<string>();
-                //开始判断是否有差异
-                var field = fields.SingleOrDefault(x=>x.Name.Equals(item.Name, StringComparison.OrdinalIgnoreCase));
-                if (field == null)
+                //数据库端未创建表
+                migrations.Add("create table");
+                foreach (var item in items)
                 {
-                    //数据库没有该字段
-                    diff.Add("new");
+                    item.DbComment = item.Comment;
+                    item.DbDataType = item.DataType;
+                    item.DbIsKey = item.IsKey;
+                    item.DbNullable = item.Nullable;
                 }
-                else
+            }
+            else
+            {
+                var fields = await _dbTool.GetTableFieldsAsync(tableName);
+                foreach (var item in items)
                 {
-                    //数据库有该字段
-                    item.DbDataType = field.DataType;
-                    item.DbNullable = field.Nullable;
-                    item.DbComment = field.Comment;
-                    item.DbIsKey = field.IsKey;
+                    List<string> diff = new List<string>();
+                    //开始判断是否有差异
+                    var field = fields.SingleOrDefault(x => x.Name.Equals(item.Name, StringComparison.OrdinalIgnoreCase));
+                    if (field == null)
+                    {
+                        //数据库没有该字段
+                        migrations.Add($"add column {item.Name}");
+                    }
+                    else
+                    {
+                        //数据库有该字段
+                        item.DbDataType = field.DataType;
+                        item.DbNullable = field.Nullable;
+                        item.DbComment = field.Comment;
+                        item.DbIsKey = field.IsKey;
+
+                        if (item.DbDataType != item.DataType 
+                            || item.DbNullable != item.Nullable
+                            || (item.DbComment??"") != (item.Comment??""))
+                        {
+                            migrations.Add($"alter column {item.Name}");
+                        }
+                    }
+                }
+
+                //处理仅数据库端才有的字段
+                foreach (var item in fields.Where(x => !items.Any(i => i.Name.Equals(x.Name))))
+                {
+                    var field = new PocoField();
+                    field.Name = item.Name;
+                    field.DataType = field.DataType;
+                    field.Nullable = field.Nullable;
+                    field.Comment = field.Comment;
+                    field.IsKey = field.IsKey;
+                    field.DbDataType = field.DataType;
+                    field.DbNullable = field.Nullable;
+                    field.DbComment = field.Comment;
+                    field.DbIsKey = field.IsKey;
+
+                    items.Add(field);
+
+                    migrations.Add($"drop column {item.Name}");
                 }
             }
 
-            //处理仅数据库端才有的字段
-            foreach (var item in fields.Where(x=> !items.Any(i => i.Name.Equals(x.Name))))
-            {
-                var field = new PocoField();
-                field.Name = item.Name;
-                field.DataType = field.DataType;
-                field.Nullable = field.Nullable;
-                field.Comment = field.Comment;
-                field.IsKey = field.IsKey;
-                field.DbDataType = field.DataType;
-                field.DbNullable = field.Nullable;
-                field.DbComment = field.Comment;
-                field.DbIsKey = field.IsKey;
-
-                items.Add(field);
-            }
-
-            return new DbMigrationJsonResult(new LayuiPagerResult<PocoField>(items, 1, 999, items.Count));
+            return new DbMigrationJsonResult(new {
+                items = new LayuiPagerResult<PocoField>(items.OrderByDescending(x => x.IsKey), 1, 999, items.Count),
+                migrations = migrations
+            });
         }
 
         private bool IsNullableField(PropertyInfo property)
@@ -220,7 +249,7 @@ namespace Ku.Core.Extensions.DbMigration.DbMigration.Pages
             }
             else if (type.IsEnum)
             {
-                return "short";
+                return "smallint";
             }
             else
             {

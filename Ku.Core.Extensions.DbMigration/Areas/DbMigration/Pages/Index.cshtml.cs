@@ -274,7 +274,5 @@ namespace Ku.Core.Extensions.DbMigration.DbMigration.Pages
 
         public bool Nullable { set; get; }
         public bool DbNullable { set; get; }
-
-        public string Diff { set; get; }
     }
 }
