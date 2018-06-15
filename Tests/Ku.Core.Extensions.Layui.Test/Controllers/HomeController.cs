@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Ku.Core.Extensions.Layui.Test.Models;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Ku.Core.Extensions.Layui.Test.Controllers
 {
@@ -12,11 +14,17 @@ namespace Ku.Core.Extensions.Layui.Test.Controllers
     {
         public IActionResult Index()
         {
+            //var aa = Uaa.GetT<IUaaa>(); ;
+            //var s = aa.Save("bbb", "hhh");
+
+            var aaa = new DynamicProxy().CreateDynamicType<IUaaa>();
+            aaa.Save("aaa", "ccc");
             return View();
         }
 
         public IActionResult Index2()
         {
+
             var dto = new DemoModel {
                 Id = 1,
                 Name = "AAAAA",
