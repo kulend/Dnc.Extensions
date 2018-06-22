@@ -14,11 +14,6 @@ namespace Ku.Core.Extensions.Layui.Test.Controllers
     {
         public IActionResult Index()
         {
-            //var aa = Uaa.GetT<IUaaa>(); ;
-            //var s = aa.Save("bbb", "hhh");
-
-            var aaa = new DynamicProxy().CreateDynamicType<IUaaa>();
-            aaa.Save("aaa", "ccc");
             return View();
         }
 
