@@ -35,6 +35,12 @@ namespace Microsoft.AspNetCore.Builder
             Ku.Core.Extensions.Dapper.DapperFactory.services = app.ApplicationServices;
             return app;
         }
+
+        public static IServiceProvider UseDapper(this IServiceProvider provider)
+        {
+            Ku.Core.Extensions.Dapper.DapperFactory.services = provider;
+            return provider;
+        }
     }
 }
 

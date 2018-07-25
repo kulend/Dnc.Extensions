@@ -244,5 +244,9 @@ namespace Ku.Core.Extensions.Dapper
         //    return (count, items);
         //}
 
+        public static async Task<int> ExecuteAsync(this IDapper dapper, string sql, object param = null)
+        {
+            return await dapper.Connection.ExecuteAsync(sql, param, dapper.DbTransaction, dapper.Timeout, null);
+        }
     }
 }
