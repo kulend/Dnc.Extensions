@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Dnc.Extensions.Dapper</AssemblyName>
+    <RootNamespace>Dnc.Extensions.Dapper</RootNamespace>
+    <Authors>kulend@qq.com</Authors>
+    <Copyright>https://github.com/kulend/Dnc.Extensions/blob/master/LICENSE</Copyright>
+    <Description>.Net Core扩展库</Description>
+    <PackageProjectUrl>https://github.com/kulend/Dnc.Extensions</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kulend/Dnc.Extensions</RepositoryUrl>
+    <PackageTags>dnc</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="1.50.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="2.1.1" />
+    <PackageReference Include="MySql.Data" Version="8.0.11" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
+  </ItemGroup>
+
+</Project>
