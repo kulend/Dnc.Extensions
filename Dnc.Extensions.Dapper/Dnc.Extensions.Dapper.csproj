@@ -10,6 +10,8 @@
     <PackageProjectUrl>https://github.com/kulend/Dnc.Extensions</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kulend/Dnc.Extensions</RepositoryUrl>
     <PackageTags>dnc</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
