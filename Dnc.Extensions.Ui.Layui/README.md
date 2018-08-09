@@ -1,23 +1,17 @@
-# Ku.Core.Extensions.Layui
+# Dnc.Extensions.Ui.Layui
 
 <p>
-    2018年5月9日，由原先的Vino.Core.Extensions.Layui更名为Ku.Core.Extensions.Layui
+    2018年8月10日，由原先的Ku.Core.Extensions.Layui更名为Dnc.Extensions.Ui.Layui
 </p>
 <p>
     演示网站地址：http://layui.kulend.com/
 </p>
 <p>
-    如果您的.net core 2.0项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。
+    如果您的.net core项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。
 </p>
 
-* 版本发布
-	<p>[2018.05.09] 版本 2.2.0.0</p>
-	<p>[2017.08.29] 版本 2.0.2.1</p>
-    <p>[2017.08.28] 版本 2.0.2.0</p>
-
 * 安装方法
-<br/> PM> Install-Package Ku.Core.Extensions.Layui -Version 2.2.0.0
-<br/> dotnet add package Ku.Core.Extensions.Layui --version 2.2.0.0
+<br/> PM> Install-Package Ku.Core.Extensions.Layui
 
 * 使用方法
     1. 在Startup的ConfigureServices方法中
@@ -28,7 +22,7 @@
 
     2. _ViewImports.cshtml文件中添加
     ```c#
-        @addTagHelper *, Ku.Core.Extensions.Layui
+        @addTagHelper *, Dnc.Extensions.Ui.Layui
     ```
 
     3. 定义Model及其属性，例如：

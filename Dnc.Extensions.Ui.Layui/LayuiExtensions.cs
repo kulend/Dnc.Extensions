@@ -3,8 +3,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Ku.Core.Extensions.Layui;
-using Ku.Core.Extensions.Ui;
+using Dnc.Extensions.Ui.Layui;
+using Dnc.Extensions.Ui;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ku.Core.Extensions.Ui
+namespace Dnc.Extensions.Ui.Layui
 {
     public class ActionTagHelper : TagHelper
     {

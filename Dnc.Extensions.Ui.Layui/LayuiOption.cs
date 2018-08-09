@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Ku.Core.Extensions.Layui
+namespace Dnc.Extensions.Ui.Layui
 {
     public class LayuiOption
     {

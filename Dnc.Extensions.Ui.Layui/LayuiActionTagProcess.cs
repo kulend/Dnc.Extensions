@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Ku.Core.Extensions.Ui;
+using Dnc.Extensions.Ui;
 
-namespace Ku.Core.Extensions.Layui
+namespace Dnc.Extensions.Ui.Layui
 {
     public class LayuiActionTagProcess : IActionTagProcess
     {

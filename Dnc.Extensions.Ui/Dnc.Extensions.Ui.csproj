@@ -5,15 +5,15 @@
     <Authors>kulend@qq.com</Authors>
     <Company>kulend@qq.com</Company>
     <Product>.net core页面使用layui的HtmlHelper扩展</Product>
-    <Description>如果您的.net core 2.0项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。</Description>
+    <Description>如果您的.net core项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。</Description>
     <Copyright>Copyright © kulend</Copyright>
     <PackageLicenseUrl>https://github.com/kulend/Ku.Core.Extensions/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/kulend/Ku.Core.Extensions</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/kulend/Ku.Core.Extensions</RepositoryUrl>
-    <PackageTags>vino layui .netcore</PackageTags>
+    <PackageProjectUrl>https://github.com/kulend/Dnc.Extensions</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kulend/Dnc.Extensions</RepositoryUrl>
+    <PackageTags>layui .netcore</PackageTags>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>如果您的.net core 2.0项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。</PackageReleaseNotes>
-    <Version>2.2.0.0</Version>
+    <PackageReleaseNotes>如果您的.net core项目使用layui来渲染表单，那么您可以尝试使用这个扩展库可以帮你减少代码和工作量。</PackageReleaseNotes>
+    <Version>1.0.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>2.2.0.0</AssemblyVersion>
   </PropertyGroup>
