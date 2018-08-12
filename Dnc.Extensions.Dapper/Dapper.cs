@@ -117,69 +117,6 @@ namespace Dnc.Extensions.Dapper
 
         #endregion
 
-        //#region QueryList
-
-        //public IEnumerable<TEntity> QueryList<TEntity>(dynamic where, dynamic order = null) where TEntity : class
-        //{
-        //    (string sql, DynamicParameters parameters) = _Query("*", Dialect.FormatTableName<TEntity>(), where as object, order as object, false);
-        //    if (string.IsNullOrEmpty(sql))
-        //    {
-        //        throw new DapperException("SQL异常！");
-        //    }
-        //    _logger.LogDebug("[Dapper]QueryList:" + sql);
-        //    return Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
-        //}
-
-        //public IEnumerable<TEntity> QueryList<TEntity>(string field, dynamic tableJoin, dynamic where, dynamic order = null) where TEntity : class
-        //{
-        //    (string sql, DynamicParameters parameters) = _Query(field, tableJoin as object, where as object, order as object, false);
-        //    if (string.IsNullOrEmpty(sql))
-        //    {
-        //        throw new DapperException("SQL异常！");
-        //    }
-        //    _logger.LogDebug("[Dapper]QueryList:" + sql);
-        //    return Connection.Query<TEntity>(sql, parameters, DbTransaction, true, Timeout);
-        //}
-
-        //#endregion
-
-        //#region QueryListAsync
-
-        //public async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
-        //{
-        //    (string sql, DynamicParameters parameters) = _Query("*", Dialect.FormatTableName<TEntity>(), where as object, order as object, false);
-        //    if (string.IsNullOrEmpty(sql))
-        //    {
-        //        throw new DapperException("SQL异常！");
-        //    }
-        //    _logger.LogDebug("[Dapper]QueryAsync:" + sql);
-        //    return await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
-        //}
-
-        //public async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(string field, dynamic tableJoin, dynamic where, dynamic order = null)
-        //{
-        //    (string sql, DynamicParameters parameters) = _Query(field, tableJoin as object, where as object, order as object, false);
-        //    if (string.IsNullOrEmpty(sql))
-        //    {
-        //        throw new DapperException("SQL异常！");
-        //    }
-        //    _logger.LogDebug("[Dapper]QueryAsync:" + sql);
-        //    return await Connection.QueryAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
-        //}
-
-        //public async Task<IEnumerable<TReturn>> QueryListAsync<TFirst, TSecond, TReturn>(string field, dynamic tableJoin, dynamic where, dynamic order, Func<TFirst, TSecond, TReturn> map, string splitOn = "Id")
-        //{
-        //    (string sql, DynamicParameters parameters) = _Query(field, tableJoin as object, where as object, order as object, false);
-        //    if (string.IsNullOrEmpty(sql))
-        //    {
-        //        throw new DapperException("SQL异常！");
-        //    }
-        //    _logger.LogDebug("[Dapper]QueryListAsync:" + sql);
-        //    return await Connection.QueryAsync(sql, map, parameters, DbTransaction, true, splitOn);
-        //}
-
-        //#endregion
-
         private (string sql, DynamicParameters parameters) _Query(string field, object tableJoin, object where, object order, bool isOne)
         {
             DynamicParameters parameters;

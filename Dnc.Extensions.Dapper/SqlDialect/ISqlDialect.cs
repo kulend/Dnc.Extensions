@@ -11,7 +11,7 @@ namespace Dnc.Extensions.Dapper.SqlDialect
         char QuoteEnd { get; }
         char ParameterPrefix { get; }
 
-        string QuoteFiled(string filed);
+        string QuoteField(string filed);
 
         string FormatTableName(string tableName, string tableSchema = null);
         string FormatTableName<TEntity>();

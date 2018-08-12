@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dnc.Extensions.Ui", "Dnc.Ex
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dnc.Extensions.Ui.Layui", "Dnc.Extensions.Ui.Layui\Dnc.Extensions.Ui.Layui.csproj", "{40CD4047-245E-4656-8AA8-8DC44BA8F9A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dnc.Extensions.Dapper.Test", "Tests\Dnc.Extensions.Dapper.Test\Dnc.Extensions.Dapper.Test.csproj", "{EA87C7CB-7FE5-4BF8-A644-38ED208495CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{40CD4047-245E-4656-8AA8-8DC44BA8F9A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40CD4047-245E-4656-8AA8-8DC44BA8F9A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40CD4047-245E-4656-8AA8-8DC44BA8F9A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA87C7CB-7FE5-4BF8-A644-38ED208495CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA87C7CB-7FE5-4BF8-A644-38ED208495CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA87C7CB-7FE5-4BF8-A644-38ED208495CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA87C7CB-7FE5-4BF8-A644-38ED208495CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

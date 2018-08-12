@@ -69,6 +69,17 @@ namespace Dnc.Extensions.Dapper
             return (sql, parameters);
         }
 
+        public static IEnumerable<TEntity> QueryList<TEntity>(this IDapper dapper, dynamic where) where TEntity : class
+        {
+            (string sql, DynamicParameters parameters) = _Query(dapper, "*", dapper.Dialect.FormatTableName<TEntity>(), where as object, null as object, false);
+            if (string.IsNullOrEmpty(sql))
+            {
+                throw new DapperException("SQL异常！");
+            }
+            dapper.Log("QueryList", sql);
+            return dapper.Connection.Query<TEntity>(sql, parameters, dapper.DbTransaction, true, dapper.Timeout);
+        }
+
         #region QueryList
 
         public static IEnumerable<TEntity> QueryList<TEntity>(this IDapper dapper, dynamic where, dynamic order = null) where TEntity : class

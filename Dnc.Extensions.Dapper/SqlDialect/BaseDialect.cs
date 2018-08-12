@@ -32,7 +32,7 @@ namespace Dnc.Extensions.Dapper.SqlDialect
             }
         }
 
-        public string QuoteFiled(string filed)
+        public string QuoteField(string filed)
         {
             return QuoteStart + filed + QuoteEnd;
         }
@@ -92,7 +92,7 @@ namespace Dnc.Extensions.Dapper.SqlDialect
             var where = "";
             if (whereFields != null && whereFields.Any())
             {
-                where = "WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p));
+                where = "WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteField(p) + "=@" + p));
             }
             else if (!string.IsNullOrEmpty(whereSql))
             {
@@ -103,7 +103,7 @@ namespace Dnc.Extensions.Dapper.SqlDialect
                 where = "WHERE 1<>1 ";
             }
 
-            return $"UPDATE {FormatTableName<TEntity>()} SET {QuoteFiled(field)}=@{field} {where}";
+            return $"UPDATE {FormatTableName<TEntity>()} SET {QuoteField(field)}=@{field} {where}";
         }
 
         public virtual string FormatDeleteSql<TEntity>(List<string> whereFields, string whereSql) where TEntity : class
@@ -111,7 +111,7 @@ namespace Dnc.Extensions.Dapper.SqlDialect
             var where = "WHERE 1<>1 ";
             if (whereFields != null && whereFields.Any())
             {
-                where = "WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p));
+                where = "WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteField(p) + "=@" + p));
             } else if (!string.IsNullOrEmpty(whereSql))
             {
                 where = "WHERE " + whereSql;
@@ -126,7 +126,7 @@ namespace Dnc.Extensions.Dapper.SqlDialect
             sql.Append(" FROM " + FormatTableName<TEntity>());
             if (whereFields != null && whereFields.Any())
             {
-                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
+                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteField(p) + "=@" + p)));
             } else if (!string.IsNullOrEmpty(whereSql))
             {
                 sql.Append(" WHERE " + whereSql);
@@ -149,7 +149,7 @@ namespace Dnc.Extensions.Dapper.SqlDialect
             var sql = new StringBuilder(" WHERE ");
             if (whereFields != null && whereFields.Any())
             {
-                sql.Append(string.Join(" AND ", whereFields.Select(p => QuoteFiled(p) + "=@" + p)));
+                sql.Append(string.Join(" AND ", whereFields.Select(p => QuoteField(p) + "=@" + p)));
                 if (!string.IsNullOrEmpty(whereSql))
                 {
                     sql.Append(" AND ");
@@ -173,7 +173,7 @@ namespace Dnc.Extensions.Dapper.SqlDialect
             var sql = new StringBuilder(" ORDER BY ");
             if (fields != null && fields.Any())
             {
-                sql.Append(string.Join(",", fields.Select(p => QuoteFiled(p.Key) + ("desc".Equals(p.Value, StringComparison.OrdinalIgnoreCase) ? " DESC" : " ASC"))));
+                sql.Append(string.Join(",", fields.Select(p => QuoteField(p.Key) + ("desc".Equals(p.Value, StringComparison.OrdinalIgnoreCase) ? " DESC" : " ASC"))));
                 if (!string.IsNullOrEmpty(orderSql))
                 {
                     sql.Append(",");
@@ -204,7 +204,7 @@ namespace Dnc.Extensions.Dapper.SqlDialect
                 var spItem = item.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 bool desc = (spItem.Length > 1 && spItem[1].Equals("desc", StringComparison.OrdinalIgnoreCase));
 
-                sql += QuoteFiled(spItem[0]) + (desc ? " DESC" : " ASC");
+                sql += QuoteField(spItem[0]) + (desc ? " DESC" : " ASC");
             }
 
             return " ORDER BY " + sql;
