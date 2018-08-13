@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Dnc.Extensions.Dapper.Attributes;
+using Dnc.Extensions.Dapper.Builders;
 using Dnc.Extensions.Dapper.SqlDialect;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

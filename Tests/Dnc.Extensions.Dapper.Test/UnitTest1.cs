@@ -1,4 +1,4 @@
-using Dnc.Extensions.Dapper.QueryBuilder;
+using Dnc.Extensions.Dapper.Builders;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using Xunit;
@@ -10,12 +10,27 @@ namespace Dnc.Extensions.Dapper.Test
         [Fact]
         public void Test1()
         {
-            var builder = new DapperQueryBuilder();
+            var builder = new QueryBuilder();
             builder.Select<User>(x => new { x.Name, x.Account, x.Id }).
                 From<User>("m")
                 .InnerJoin<UserInfo>("t")
-                .On(new LogicConditionBuilder().Equal<User, UserInfo>(m => m.Id, t => t.Id))
-                .Where(new LogicConditionBuilder().Equal<User>(m => m.Account, "112233"))
+                .On(new ConditionBuilder().Equal<User, UserInfo>(m => m.Id, t => t.Id))
+                .Where(new ConditionBuilder().Equal<User>(m => m.Account, "112233").And().Like<User>(m => m.Name, "ff"))
+                .OrderBy<User>(u => u.Name).ThenByDesc<UserInfo>(t => t.Age);
+            var result = builder.Build();
+            Assert.NotNull(result.sql);
+        }
+
+        [Fact]
+        public void Test2()
+        {
+            var builder = new QueryBuilder();
+            builder.Select<User>()
+                .Concat<UserInfo>()
+                .From<User>("m")
+                .InnerJoin<UserInfo>("t")
+                .On(new ConditionBuilder().Equal<User, UserInfo>(m => m.Id, t => t.Id).And().Less<UserInfo>(t => t.Age, 20))
+                .Where(new ConditionBuilder().Equal<User>(m => m.Account, "112233"))
                 .OrderBy<User>(u => u.Name).ThenByDesc<UserInfo>(t => t.Age);
             var result = builder.Build();
             Assert.NotNull(result.sql);

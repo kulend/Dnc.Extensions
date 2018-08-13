@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Dnc.Extensions.Dapper.QueryBuilder
+namespace Dnc.Extensions.Dapper.Builders
 {
     public abstract class BaseBuilder
     {
@@ -21,15 +21,22 @@ namespace Dnc.Extensions.Dapper.QueryBuilder
 
         public abstract (string sql, Dictionary<string, object> param) Build();
 
-        protected string FormatFiled(string tableAlias, string field)
+        public string FormatFiled(string tableAlias, string field)
         {
             return string.IsNullOrEmpty(tableAlias) ? _dialect.QuoteField(field) : $"{tableAlias}.{_dialect.QuoteField(field)}";
         }
 
-        protected string GetParameterName(string name)
+        public string GetParameterName(string name = null)
         {
             var num = new Random().Next(0, 999);
             return "_p" + name + num;
+        }
+
+        public string FormatTableAliasKey<TEntity>()
+        {
+            var key = typeof(TEntity).FullName;
+            key = key.Replace("+", ".");
+            return "@@" + key + "@@";
         }
     }
 }

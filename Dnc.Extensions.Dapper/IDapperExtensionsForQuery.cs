@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Dnc.Extensions.Dapper.Builders;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -67,17 +68,6 @@ namespace Dnc.Extensions.Dapper
 
             var sql = dapper.Dialect.FormatQuerySql(field, tableJoinSql, whereSql, orderSql, isOne);
             return (sql, parameters);
-        }
-
-        public static IEnumerable<TEntity> QueryList<TEntity>(this IDapper dapper, dynamic where) where TEntity : class
-        {
-            (string sql, DynamicParameters parameters) = _Query(dapper, "*", dapper.Dialect.FormatTableName<TEntity>(), where as object, null as object, false);
-            if (string.IsNullOrEmpty(sql))
-            {
-                throw new DapperException("SQL异常！");
-            }
-            dapper.Log("QueryList", sql);
-            return dapper.Connection.Query<TEntity>(sql, parameters, dapper.DbTransaction, true, dapper.Timeout);
         }
 
         #region QueryList
@@ -154,5 +144,36 @@ namespace Dnc.Extensions.Dapper
 
         #endregion
 
+        public static TEntity QueryOne<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
+        {
+            var result = builder.Build();
+
+            dapper.Log("QueryOne", result.sql);
+            return dapper.Connection.QueryFirstOrDefault<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
+        }
+
+        public static async Task<TEntity> QueryOneAsync<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
+        {
+            var result = builder.Build();
+
+            dapper.Log("QueryOneAsync", result.sql);
+            return await dapper.Connection.QueryFirstOrDefaultAsync<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
+        }
+
+        public static IEnumerable<TEntity> QueryList<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
+        {
+            var result = builder.Build();
+
+            dapper.Log("QueryOne", result.sql);
+            return dapper.Connection.Query<TEntity>(result.sql, result.param, dapper.DbTransaction, true, dapper.Timeout);
+        }
+
+        public static async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
+        {
+            var result = builder.Build();
+
+            dapper.Log("QueryOne", result.sql);
+            return await dapper.Connection.QueryAsync<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
+        }
     }
 }
