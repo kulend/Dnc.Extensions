@@ -30,17 +30,17 @@ namespace Dnc.Extensions.Dapper
 
         #region 查询
 
-        #region QueryOne
+        //#region QueryOne
 
-        TEntity QueryOne<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
+        //TEntity QueryOne<TEntity>(dynamic where, dynamic order = null) where TEntity : class;
 
-        #endregion
+        //#endregion
 
-        #region QueryOneAsync
+        //#region QueryOneAsync
 
-        Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class; 
+        //Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class; 
 
-        #endregion
+        //#endregion
 
         #endregion
 

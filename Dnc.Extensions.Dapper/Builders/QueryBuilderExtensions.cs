@@ -14,9 +14,9 @@ namespace Dnc.Extensions.Dapper.Builders
             return builder;
         }
 
-        public static QueryBuilder Where<TEntity>(this QueryBuilder builder, dynamic where)
+        public static QueryBuilder Where<TEntity>(this QueryBuilder builder, object where)
         {
-            builder.Where(ConditionBuilder.FormDynamic<TEntity>(where as object));
+            builder.Where(ConditionBuilder.FormDynamic<TEntity>(where));
             return builder;
         }
     }

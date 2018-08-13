@@ -11,6 +11,61 @@ namespace Dnc.Extensions.Dapper
 {
     public static class IDapperExtensionsForQuery
     {
+        #region QueryOne & QueryOneAsync
+
+        public static TEntity QueryOne<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
+        {
+            var result = builder.Build();
+
+            dapper.Log("QueryOne", result.sql);
+            return dapper.Connection.QueryFirstOrDefault<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
+        }
+
+        public static async Task<TEntity> QueryOneAsync<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
+        {
+            var result = builder.Build();
+
+            dapper.Log("QueryOneAsync", result.sql);
+            return await dapper.Connection.QueryFirstOrDefaultAsync<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
+        }
+
+        public static TEntity QueryOne<TEntity>(this IDapper dapper, dynamic where, dynamic order = null) where TEntity : class
+        {
+            var builder = new SimpleQueryBuilder<TEntity>(where as object, order as object);
+
+            return dapper.QueryOne<TEntity>(builder);
+        }
+
+        public static async Task<TEntity> QueryOneAsync<TEntity>(this IDapper dapper, dynamic where, dynamic order = null) where TEntity : class
+        {
+            var builder = new SimpleQueryBuilder<TEntity>(where as object, order as object);
+            return await dapper.QueryOneAsync<TEntity>(builder);
+        }
+
+        #endregion
+
+        #region QueryList & QueryListAsync
+
+        public static IEnumerable<TEntity> QueryList<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
+        {
+            var result = builder.Build();
+
+            dapper.Log("QueryList", result.sql);
+            return dapper.Connection.Query<TEntity>(result.sql, result.param, dapper.DbTransaction, true, dapper.Timeout);
+        }
+
+        public static async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
+        {
+            var result = builder.Build();
+
+            dapper.Log("QueryListAsync", result.sql);
+            return await dapper.Connection.QueryAsync<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
+        }
+
+
+
+        #endregion
+
         private static (string sql, DynamicParameters parameters) _Query(IDapper dapper, string field, object tableJoin, object where, object order, bool isOne)
         {
             DynamicParameters parameters;
@@ -69,6 +124,7 @@ namespace Dnc.Extensions.Dapper
             var sql = dapper.Dialect.FormatQuerySql(field, tableJoinSql, whereSql, orderSql, isOne);
             return (sql, parameters);
         }
+
 
         #region QueryList
 
@@ -144,37 +200,7 @@ namespace Dnc.Extensions.Dapper
 
         #endregion
 
-        public static TEntity QueryOne<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
-        {
-            var result = builder.Build();
 
-            dapper.Log("QueryOne", result.sql);
-            return dapper.Connection.QueryFirstOrDefault<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
-        }
-
-        public static async Task<TEntity> QueryOneAsync<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
-        {
-            var result = builder.Build();
-
-            dapper.Log("QueryOneAsync", result.sql);
-            return await dapper.Connection.QueryFirstOrDefaultAsync<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
-        }
-
-        public static IEnumerable<TEntity> QueryList<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
-        {
-            var result = builder.Build();
-
-            dapper.Log("QueryList", result.sql);
-            return dapper.Connection.Query<TEntity>(result.sql, result.param, dapper.DbTransaction, true, dapper.Timeout);
-        }
-
-        public static async Task<IEnumerable<TEntity>> QueryListAsync<TEntity>(this IDapper dapper, QueryBuilder builder) where TEntity : class
-        {
-            var result = builder.Build();
-
-            dapper.Log("QueryListAsync", result.sql);
-            return await dapper.Connection.QueryAsync<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
-        }
 
         public static async Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(this IDapper dapper, QueryBuilder builder)
         {

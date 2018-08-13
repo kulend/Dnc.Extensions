@@ -88,94 +88,64 @@ namespace Dnc.Extensions.Dapper
 
         #region 查询
 
-        #region QueryOne
+        //private (string sql, DynamicParameters parameters) _Query(string field, object tableJoin, object where, object order, bool isOne)
+        //{
+        //    DynamicParameters parameters;
 
-        public TEntity QueryOne<TEntity>(dynamic where, dynamic order = null) where TEntity : class
-        {
-            (string sql, DynamicParameters parameters) = _Query("*", Dialect.FormatTableName<TEntity>(), where as object, order as object, true);
-            if (string.IsNullOrEmpty(sql))
-            {
-                throw new DapperException("SQL异常！");
-            }
-            _logger.LogDebug("[Dapper]QueryOne:" + sql);
-            return Connection.QueryFirstOrDefault<TEntity>(sql, parameters, DbTransaction, Timeout);
-        }
+        //    //处理WHERE语句
+        //    string whereSql;
+        //    if (where is DapperSql dSql)
+        //    {
+        //        whereSql = Dialect.FormatWhereSql(null, dSql.Sql);
+        //        parameters = new DynamicParameters(dSql.Parameters as object);
+        //    }
+        //    else if (where is string s)
+        //    {
+        //        whereSql = Dialect.FormatWhereSql(null, s);
+        //        parameters = new DynamicParameters();
+        //    }
+        //    else
+        //    {
+        //        parameters = new DynamicParameters(where);
+        //        var fields = GetDynamicFields(where).Select(x => x.Name).ToList();
+        //        whereSql = Dialect.FormatWhereSql(fields, null);
+        //    }
 
-        #endregion
+        //    //处理ORDER语句
+        //    string orderSql = null;
+        //    if (order is DapperSql dSqlOrder)
+        //    {
+        //        orderSql = Dialect.FormatOrderSql(null, dSqlOrder.Sql);
+        //    }
+        //    else if (order is string s)
+        //    {
+        //        orderSql = Dialect.FormatOrderSql(null, s);
+        //    }
+        //    else if (order != null)
+        //    {
+        //        Dictionary<string, string> dict = new Dictionary<string, string>();
+        //        GetDynamicFields(order).ForEach(item => dict.Add(item.Name, (string)item.Value));
+        //        orderSql = Dialect.FormatOrderSql(dict, null);
+        //    }
 
-        #region QueryOneAsync
+        //    //处理tableJoin
+        //    string tableJoinSql = null;
+        //    if (tableJoin is string str1)
+        //    {
+        //        tableJoinSql = str1;
+        //    }
+        //    else if (tableJoin is DapperSql ds)
+        //    {
+        //        tableJoinSql = ds.Sql;
+        //        var dynamicFields = GetDynamicFields(ds.Parameters as object);
+        //        var expandoObject = new ExpandoObject() as IDictionary<string, object>;
+        //        dynamicFields.ForEach(p => expandoObject.Add(p.Name, p.Value));
+        //        parameters.AddDynamicParams(expandoObject);
+        //    }
 
-        public async Task<TEntity> QueryOneAsync<TEntity>(dynamic where, dynamic order = null) where TEntity : class
-        {
-            (string sql, DynamicParameters parameters) = _Query("*", Dialect.FormatTableName<TEntity>(), where as object, order as object, true);
-            if (string.IsNullOrEmpty(sql))
-            {
-                throw new DapperException("SQL异常！");
-            }
-            _logger.LogDebug("[Dapper]QueryOneAsync:" + sql);
-            return await Connection.QueryFirstOrDefaultAsync<TEntity>(sql, parameters, DbTransaction, Timeout);
-        } 
-
-        #endregion
-
-        private (string sql, DynamicParameters parameters) _Query(string field, object tableJoin, object where, object order, bool isOne)
-        {
-            DynamicParameters parameters;
-
-            //处理WHERE语句
-            string whereSql;
-            if (where is DapperSql dSql)
-            {
-                whereSql = Dialect.FormatWhereSql(null, dSql.Sql);
-                parameters = new DynamicParameters(dSql.Parameters as object);
-            }
-            else if (where is string s)
-            {
-                whereSql = Dialect.FormatWhereSql(null, s);
-                parameters = new DynamicParameters();
-            }
-            else
-            {
-                parameters = new DynamicParameters(where);
-                var fields = GetDynamicFields(where).Select(x => x.Name).ToList();
-                whereSql = Dialect.FormatWhereSql(fields, null);
-            }
-
-            //处理ORDER语句
-            string orderSql = null;
-            if (order is DapperSql dSqlOrder)
-            {
-                orderSql = Dialect.FormatOrderSql(null, dSqlOrder.Sql);
-            }
-            else if (order is string s)
-            {
-                orderSql = Dialect.FormatOrderSql(null, s);
-            }
-            else if (order != null)
-            {
-                Dictionary<string, string> dict = new Dictionary<string, string>();
-                GetDynamicFields(order).ForEach(item => dict.Add(item.Name, (string)item.Value));
-                orderSql = Dialect.FormatOrderSql(dict, null);
-            }
-
-            //处理tableJoin
-            string tableJoinSql = null;
-            if (tableJoin is string str1)
-            {
-                tableJoinSql = str1;
-            }
-            else if (tableJoin is DapperSql ds)
-            {
-                tableJoinSql = ds.Sql;
-                var dynamicFields = GetDynamicFields(ds.Parameters as object);
-                var expandoObject = new ExpandoObject() as IDictionary<string, object>;
-                dynamicFields.ForEach(p => expandoObject.Add(p.Name, p.Value));
-                parameters.AddDynamicParams(expandoObject);
-            }
-
-            var sql = Dialect.FormatQuerySql(field, tableJoinSql, whereSql, orderSql, isOne);
-            return (sql, parameters);
-        }
+        //    var sql = Dialect.FormatQuerySql(field, tableJoinSql, whereSql, orderSql, isOne);
+        //    return (sql, parameters);
+        //}
 
         #endregion
 
