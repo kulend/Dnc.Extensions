@@ -19,8 +19,6 @@ namespace Dnc.Extensions.Dapper.Builders
             _dialect = options.SqlDialect;
         }
 
-        public abstract (string sql, Dictionary<string, object> param) Build();
-
         public string FormatFiled(string tableAlias, string field)
         {
             return string.IsNullOrEmpty(tableAlias) ? _dialect.QuoteField(field) : $"{tableAlias}.{_dialect.QuoteField(field)}";
@@ -32,7 +30,7 @@ namespace Dnc.Extensions.Dapper.Builders
             return "_p" + name + num;
         }
 
-        public string FormatTableAliasKey<TEntity>()
+        public static string FormatTableAliasKey<TEntity>()
         {
             var key = typeof(TEntity).FullName;
             key = key.Replace("+", ".");

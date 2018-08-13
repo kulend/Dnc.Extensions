@@ -1,5 +1,4 @@
 ﻿using Dnc.Extensions.Dapper.Attributes;
-using Dnc.Extensions.Dapper.Sql;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -12,7 +11,7 @@ namespace Dnc.Extensions.Dapper.Builders
     {
         protected StringBuilder sb = new StringBuilder();
 
-        public override (string sql, Dictionary<string, object> param) Build()
+        public (string sql, Dictionary<string, object> param) Build()
         {
             return (sb.ToString(), param);
         }
@@ -20,7 +19,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder Expression<TEntity>(Expression<Func<TEntity, object>> field, string @operator, object value)
         {
             var t1 = FormatTableAliasKey<TEntity>();
-            var n1 = ExpressionHelper.GetPropertyName(field);
+            var n1 = field.GetPropertyName();
             return Expression(FormatFiled(t1, n1), @operator, value);
         }
 
@@ -34,13 +33,26 @@ namespace Dnc.Extensions.Dapper.Builders
             return this;
         }
 
+        public ConditionBuilder Append(string sql, params KeyValuePair<string, object>[] @params)
+        {
+            if (@params != null)
+            {
+                foreach (var item in @params)
+                {
+                    param.Add(item.Key, item.Value);
+                }
+            }
+            sb.Append(sql);
+            return this;
+        }
+
         public ConditionBuilder Expression<T1, T2>(Expression<Func<T1, object>> field1, string @operator, Expression<Func<T1, object>> field2)
         {
             var t1 = FormatTableAliasKey<T1>();
-            var n1 = ExpressionHelper.GetPropertyName(field1);
+            var n1 = field1.GetPropertyName();
 
             var t2 = FormatTableAliasKey<T2>();
-            var n2 = ExpressionHelper.GetPropertyName(field2);
+            var n2 = field2.GetPropertyName();
 
             sb.Append($"{FormatFiled(t1, n1)}{@operator}{FormatFiled(t2, n2)}");
 
@@ -62,7 +74,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder Like<TEntity>(Expression<Func<TEntity, object>> field, object value, string leftChars = "%", string rightChars = "%")
         {
             var t1 = FormatTableAliasKey<TEntity>();
-            var n1 = ExpressionHelper.GetPropertyName(field);
+            var n1 = field.GetPropertyName();
             return Like(FormatFiled(t1, n1), value, leftChars, rightChars);
         }
 
@@ -79,7 +91,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder NotLike<TEntity>(Expression<Func<TEntity, object>> field, object value, string leftChars = "%", string rightChars = "%")
         {
             var t1 = FormatTableAliasKey<TEntity>();
-            var n1 = ExpressionHelper.GetPropertyName(field);
+            var n1 = field.GetPropertyName();
             return NotLike(FormatFiled(t1, n1), value, leftChars, rightChars);
         }
 
@@ -100,7 +112,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder In<TEntity>(Expression<Func<TEntity, object>> field, object value)
         {
             var t1 = FormatTableAliasKey<TEntity>();
-            var n1 = ExpressionHelper.GetPropertyName(field);
+            var n1 = field.GetPropertyName();
             return In(FormatFiled(t1, n1), value);
         }
 
@@ -117,7 +129,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder NotIn<TEntity>(Expression<Func<TEntity, object>> field, object value)
         {
             var t1 = FormatTableAliasKey<TEntity>();
-            var n1 = ExpressionHelper.GetPropertyName(field);
+            var n1 = field.GetPropertyName();
             return NotIn(FormatFiled(t1, n1), value);
         }
 
@@ -187,9 +199,9 @@ namespace Dnc.Extensions.Dapper.Builders
                 }
 
                 //取得字段名
-                var name = (attr != null && string.IsNullOrEmpty(attr.Name)) ? attr.Name : p.Name;
+                var name = (attr != null && !string.IsNullOrEmpty(attr.Name)) ? attr.Name : p.Name;
 
-                var t = builder.FormatTableAliasKey<TEntity>();
+                var t = FormatTableAliasKey<TEntity>();
 
                 var field = builder.FormatFiled(t, name);
 
@@ -226,10 +238,46 @@ namespace Dnc.Extensions.Dapper.Builders
                     case ConditionOperation.LessOrEqual:
                         builder.Expression(field, "<=", value);
                         break;
+                    case ConditionOperation.Custom:
+                        //自定义
+                        var s = attr?.CustomSql;
+                        if (!string.IsNullOrEmpty(s))
+                        {
+                            string pn = builder.GetParameterName();
+                            s = s.Replace("@value", "@" + pn);
+                            builder.Append(s, new KeyValuePair<string, object>(pn, value));
+                        }
+                        break;
                     default:
                         builder.Expression(field, "=", value);
                         break;
                 }
+            }
+
+            return builder;
+        }
+
+        public static ConditionBuilder FormDynamic<TEntity>(dynamic where)
+        {
+            var builder = new ConditionBuilder();
+            if (where as object == null)
+            {
+                return builder;
+            }
+            var t = FormatTableAliasKey<TEntity>();
+            bool isFirst = true;
+            foreach (var item in Dapper.GetDynamicFields(where as object))
+            {
+                if (isFirst)
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    builder.And();
+                }
+
+                builder.Expression(builder.FormatFiled(t, item.Name), "=", item.Value);
             }
 
             return builder;

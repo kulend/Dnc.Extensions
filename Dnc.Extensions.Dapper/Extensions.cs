@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace Dnc.Extensions.Dapper
@@ -25,6 +26,28 @@ namespace Dnc.Extensions.Dapper
                     self.Add(item);
                 }
             }
+        }
+
+        public static string GetPropertyName<TSource, TField>(this Expression<Func<TSource, TField>> field)
+        {
+            if (Equals(field, null))
+                throw new ArgumentNullException(nameof(field), "field can't be null");
+
+            MemberExpression expr;
+
+            switch (field.Body)
+            {
+                case MemberExpression body:
+                    expr = body;
+                    break;
+                case UnaryExpression expression:
+                    expr = (MemberExpression)expression.Operand;
+                    break;
+                default:
+                    throw new ArgumentException("Expression field isn't supported", nameof(field));
+            }
+
+            return expr.Member.Name;
         }
     }
 }

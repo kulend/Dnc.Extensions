@@ -32,6 +32,8 @@ namespace Dnc.Extensions.Dapper.Attributes
         /// Like用
         /// </summary>
         public string RightChar { set; get; } = "%";
+
+        public string CustomSql { set; get; }
     }
 
     public enum ConditionOperation
@@ -47,6 +49,10 @@ namespace Dnc.Extensions.Dapper.Attributes
         Less,
         LessOrEqual,
 
+        /// <summary>
+        /// 自定义
+        /// </summary>
+        Custom
     }
 
     public enum WhenNull

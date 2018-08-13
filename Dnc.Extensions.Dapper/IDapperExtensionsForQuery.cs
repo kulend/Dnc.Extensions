@@ -164,7 +164,7 @@ namespace Dnc.Extensions.Dapper
         {
             var result = builder.Build();
 
-            dapper.Log("QueryOne", result.sql);
+            dapper.Log("QueryList", result.sql);
             return dapper.Connection.Query<TEntity>(result.sql, result.param, dapper.DbTransaction, true, dapper.Timeout);
         }
 
@@ -172,8 +172,23 @@ namespace Dnc.Extensions.Dapper
         {
             var result = builder.Build();
 
-            dapper.Log("QueryOne", result.sql);
+            dapper.Log("QueryListAsync", result.sql);
             return await dapper.Connection.QueryAsync<TEntity>(result.sql, result.param, dapper.DbTransaction, dapper.Timeout);
         }
+
+        public static async Task<(int count, IEnumerable<TEntity> items)> QueryPageAsync<TEntity>(this IDapper dapper, QueryBuilder builder)
+        {
+            var result = builder.Build();
+
+            dapper.Log("ExecuteScalarAsync", result.countSql);
+            var count = (await dapper.Connection.ExecuteScalarAsync<int?>(result.countSql, result.param, dapper.DbTransaction, dapper.Timeout)).GetValueOrDefault();
+            var limit = builder.GetLimit();
+            if (count == 0 || count <= ((limit.page - 1) * limit.rows)) return (count, new TEntity[] { });
+
+            dapper.Log("QueryPageAsync", result.pageSql);
+            var items = await dapper.Connection.QueryAsync<TEntity>(result.pageSql, result.param, dapper.DbTransaction, dapper.Timeout);
+            return (count, items);
+        }
+
     }
 }
