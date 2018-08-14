@@ -120,20 +120,6 @@ namespace Dnc.Extensions.Dapper.SqlDialect
             return $"DELETE FROM {FormatTableName<TEntity>()} {where}";
         }
 
-        public virtual string FormatCountSql<TEntity>(List<string> whereFields, string whereSql)
-        {
-            var sql = new StringBuilder("SELECT COUNT(1)");
-            sql.Append(" FROM " + FormatTableName<TEntity>());
-            if (whereFields != null && whereFields.Any())
-            {
-                sql.Append(" WHERE " + string.Join(" AND ", whereFields.Select(p => QuoteField(p) + "=@" + p)));
-            } else if (!string.IsNullOrEmpty(whereSql))
-            {
-                sql.Append(" WHERE " + whereSql);
-            }
-            return sql.ToString();
-        }
-
         public virtual string FormatQueryPageSql<TEntity>(int page, int rows, string field, string where, string order) where TEntity : class
         {
             throw new NotImplementedException();

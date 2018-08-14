@@ -28,15 +28,13 @@ namespace Dnc.Extensions.Dapper.SqlDialect
 
         string FormatDeleteSql<TEntity>(List<string> whereFields, string whereSql) where TEntity : class;
 
-        string FormatCountSql<TEntity>(List<string> whereFields, string whereSql);
-
-        string FormatQueryPageSql<TEntity>(int page, int rows, string field, string where, string order) where TEntity : class;
+        //string FormatQueryPageSql<TEntity>(int page, int rows, string field, string where, string order) where TEntity : class;
 
         string FormatWhereSql(List<string> whereFields, string whereSql);
 
         string FormatOrderSql(Dictionary<string, string> fields, string orderSql);
 
-        string FormatQuerySql(string fieldSql, string tableJoin, string where, string order, bool isOne);
+        //string FormatQuerySql(string fieldSql, string tableJoin, string where, string order, bool isOne);
 
         string FormatQueryPageSql(int page, int rows, string sql);
     }
