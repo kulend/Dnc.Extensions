@@ -85,6 +85,20 @@ namespace Dnc.Extensions.Dapper.Builders
             return this;
         }
 
+        public QueryBuilder RightJoin<TEntity>(string @as = null) where TEntity : class
+        {
+            if (string.IsNullOrEmpty(@as))
+            {
+                @as = "t" + (tableIndex++).ToString();
+            }
+
+            var key = FormatTableAliasKey<TEntity>();
+            dictTable.Add(key, @as);
+
+            sb.Append($" right join {_dialect.FormatTableName<TEntity>()} as {@as}");
+            return this;
+        }
+
         public QueryBuilder InnerJoin<TEntity>(string @as = null) where TEntity : class
         {
             if (string.IsNullOrEmpty(@as))
@@ -109,9 +123,12 @@ namespace Dnc.Extensions.Dapper.Builders
 
         public QueryBuilder Where(ConditionBuilder builder)
         {
-            var where = builder.Build();
-            param.TryConcat(where.param);
-            sb.Append(" where " + where.sql);
+            if (builder.HasCondition)
+            {
+                var where = builder.Build();
+                param.TryConcat(where.param);
+                sb.Append(" where " + where.sql);
+            }
             return this;
         }
 

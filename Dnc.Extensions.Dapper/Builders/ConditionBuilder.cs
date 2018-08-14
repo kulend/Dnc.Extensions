@@ -9,11 +9,35 @@ namespace Dnc.Extensions.Dapper.Builders
 {
     public class ConditionBuilder : BaseBuilder
     {
+        /// <summary>
+        /// 是否添加了条件
+        /// </summary>
+        internal bool HasCondition { set; get; } = false;
+
         protected StringBuilder sb = new StringBuilder();
 
         public (string sql, Dictionary<string, object> param) Build()
         {
             return (sb.ToString(), param);
+        }
+
+        /// <summary>
+        /// 添加条件
+        /// </summary>
+        public ConditionBuilder Append(string sql, params KeyValuePair<string, object>[] @params)
+        {
+            if (@params != null)
+            {
+                foreach (var item in @params)
+                {
+                    param.Add(item.Key, item.Value);
+                }
+            }
+            sb.Append(sql);
+
+            HasCondition = true;
+
+            return this;
         }
 
         public ConditionBuilder Expression<TEntity>(Expression<Func<TEntity, object>> field, string @operator, object value)
@@ -25,25 +49,22 @@ namespace Dnc.Extensions.Dapper.Builders
 
         public ConditionBuilder Expression(string field, string @operator, object value)
         {
-            var p = GetParameterName();
-            param.Add(p, value);
-
-            sb.Append($"{field}{@operator}@{p}");
-
-            return this;
-        }
-
-        public ConditionBuilder Append(string sql, params KeyValuePair<string, object>[] @params)
-        {
-            if (@params != null)
+            if (value == null)
             {
-                foreach (var item in @params)
+                if ("=".Equals(@operator))
                 {
-                    param.Add(item.Key, item.Value);
+                    return Append($"{field} is null", null);
+                } else if ("<>".Equals(@operator))
+                {
+                    return Append($"{field} is not null", null);
                 }
+                return this;
             }
-            sb.Append(sql);
-            return this;
+            else
+            {
+                var p = GetParameterName();
+                return Append($"{field}{@operator}@{p}", new KeyValuePair<string, object>(p, value));
+            }
         }
 
         public ConditionBuilder Expression<T1, T2>(Expression<Func<T1, object>> field1, string @operator, Expression<Func<T1, object>> field2)
@@ -54,9 +75,7 @@ namespace Dnc.Extensions.Dapper.Builders
             var t2 = FormatTableAliasKey<T2>();
             var n2 = field2.GetPropertyName();
 
-            sb.Append($"{FormatFiled(t1, n1)}{@operator}{FormatFiled(t2, n2)}");
-
-            return this;
+            return Append($"{FormatFiled(t1, n1)}{@operator}{FormatFiled(t2, n2)}", null);
         }
 
         #region Like & NotLike
@@ -64,11 +83,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder Like(string field, object value, string leftChars = "%", string rightChars = "%")
         {
             var p = GetParameterName();
-            param.Add(p, $"{leftChars}{value}{rightChars}");
-
-            sb.Append($"{field} like @{p}");
-
-            return this;
+            return Append($"{field} like @{p}", new KeyValuePair<string, object>(p, $"{leftChars}{value}{rightChars}"));
         }
 
         public ConditionBuilder Like<TEntity>(Expression<Func<TEntity, object>> field, object value, string leftChars = "%", string rightChars = "%")
@@ -81,11 +96,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder NotLike(string field, object value, string leftChars = "%", string rightChars = "%")
         {
             var p = GetParameterName();
-            param.Add(p, $"{leftChars}{value}{rightChars}");
-
-            sb.Append($"{field} not like @{p}");
-
-            return this;
+            return Append($"{field} not like @{p}", new KeyValuePair<string, object>(p, $"{leftChars}{value}{rightChars}"));
         }
 
         public ConditionBuilder NotLike<TEntity>(Expression<Func<TEntity, object>> field, object value, string leftChars = "%", string rightChars = "%")
@@ -102,11 +113,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder In(string field, object value)
         {
             var p = GetParameterName();
-            param.Add(p, value);
-
-            sb.Append($"{field} in (@{p})");
-
-            return this;
+            return Append($"{field} in (@{p})", new KeyValuePair<string, object>(p, value));
         }
 
         public ConditionBuilder In<TEntity>(Expression<Func<TEntity, object>> field, object value)
@@ -119,11 +126,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder NotIn(string field, object value)
         {
             var p = GetParameterName();
-            param.Add(p, value);
-
-            sb.Append($"{field} not like (@{p})");
-
-            return this;
+            return Append($"{field} not in (@{p})", new KeyValuePair<string, object>(p, value));
         }
 
         public ConditionBuilder NotIn<TEntity>(Expression<Func<TEntity, object>> field, object value)
@@ -135,10 +138,24 @@ namespace Dnc.Extensions.Dapper.Builders
 
         #endregion
 
+        public ConditionBuilder IsNull(string field)
+        {
+            return Append($"{field} is null", null);
+        }
+
+        public ConditionBuilder IsNotNull(string field)
+        {
+            return Append($"{field} is not null", null);
+        }
+
         #region 逻辑符
 
         public ConditionBuilder And()
         {
+            if (!HasCondition)
+            {
+                return this;
+            }
             sb.Append($" and ");
             return this;
         }
@@ -146,6 +163,10 @@ namespace Dnc.Extensions.Dapper.Builders
 
         public ConditionBuilder Or()
         {
+            if (!HasCondition)
+            {
+                return this;
+            }
             sb.Append($" or ");
             return this;
         }
