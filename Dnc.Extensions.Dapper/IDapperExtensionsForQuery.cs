@@ -73,6 +73,30 @@ namespace Dnc.Extensions.Dapper
             return await dapper.QueryListAsync<TEntity>(builder);
         }
 
+        public static async Task<IEnumerable<TReturn>> QueryListAsync<TFirst, TSecond, TReturn>(this IDapper dapper, QueryBuilder builder, Func<TFirst, TSecond, TReturn> map, string splitOn = "Id")
+        {
+            var result = builder.Build();
+            dapper.Log("QueryListAsync", result.sql);
+            var items = await dapper.Connection.QueryAsync(result.sql, map, result.param, dapper.DbTransaction, true, splitOn, dapper.Timeout);
+            return items;
+        }
+
+        public static async Task<IEnumerable<TReturn>> QueryListAsync<TFirst, TSecond, TThree, TReturn>(this IDapper dapper, QueryBuilder builder, Func<TFirst, TSecond, TThree, TReturn> map, string splitOn = "Id")
+        {
+            var result = builder.Build();
+            dapper.Log("QueryListAsync", result.sql);
+            var items = await dapper.Connection.QueryAsync(result.sql, map, result.param, dapper.DbTransaction, true, splitOn, dapper.Timeout);
+            return items;
+        }
+
+        public static async Task<IEnumerable<TReturn>> QueryListAsync<TFirst, TSecond, TThree, TFour, TReturn>(this IDapper dapper, QueryBuilder builder, Func<TFirst, TSecond, TThree, TFour, TReturn> map, string splitOn = "Id")
+        {
+            var result = builder.Build();
+            dapper.Log("QueryListAsync", result.sql);
+            var items = await dapper.Connection.QueryAsync(result.sql, map, result.param, dapper.DbTransaction, true, splitOn, dapper.Timeout);
+            return items;
+        }
+
         #endregion
 
         #region QueryCount & QueryCountAsync
