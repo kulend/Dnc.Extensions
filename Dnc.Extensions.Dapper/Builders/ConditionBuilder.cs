@@ -113,7 +113,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder In(string field, object value)
         {
             var p = GetParameterName();
-            return Append($"{field} in (@{p})", new KeyValuePair<string, object>(p, value));
+            return Append($"{field} in @{p}", new KeyValuePair<string, object>(p, value));
         }
 
         public ConditionBuilder In<TEntity>(Expression<Func<TEntity, object>> field, object value)
@@ -126,7 +126,7 @@ namespace Dnc.Extensions.Dapper.Builders
         public ConditionBuilder NotIn(string field, object value)
         {
             var p = GetParameterName();
-            return Append($"{field} not in (@{p})", new KeyValuePair<string, object>(p, value));
+            return Append($"{field} not in @{p}", new KeyValuePair<string, object>(p, value));
         }
 
         public ConditionBuilder NotIn<TEntity>(Expression<Func<TEntity, object>> field, object value)
