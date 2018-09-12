@@ -143,9 +143,19 @@ namespace Dnc.Extensions.Dapper.Builders
             return Append($"{field} is null", null);
         }
 
+        public ConditionBuilder IsNullOrEmpty(string field)
+        {
+            return Append($"({field} is null or {field}='')", null);
+        }
+
         public ConditionBuilder IsNotNull(string field)
         {
             return Append($"{field} is not null", null);
+        }
+
+        public ConditionBuilder IsNotNullOrEmpty(string field)
+        {
+            return Append($"({field} is not null and {field}<>'')", null);
         }
 
         #region 逻辑符

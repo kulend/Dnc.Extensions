@@ -83,6 +83,32 @@ namespace Dnc.Extensions.Dapper.Builders
             return builder.Expression<T1, T2>(field1, "<=", field2);
         }
 
+        public static ConditionBuilder IsNull<TEntity>(this ConditionBuilder builder, Expression<Func<TEntity, object>> field)
+        {
+            var t1 = ConditionBuilder.FormatTableAliasKey<TEntity>();
+            var n1 = field.GetPropertyName();
+            return builder.IsNull(builder.FormatFiled(t1, n1));
+        }
 
+        public static ConditionBuilder IsNullOrEmpty<TEntity>(this ConditionBuilder builder, Expression<Func<TEntity, object>> field)
+        {
+            var t1 = ConditionBuilder.FormatTableAliasKey<TEntity>();
+            var n1 = field.GetPropertyName();
+            return builder.IsNullOrEmpty(builder.FormatFiled(t1, n1));
+        }
+
+        public static ConditionBuilder IsNotNull<TEntity>(this ConditionBuilder builder, Expression<Func<TEntity, object>> field)
+        {
+            var t1 = ConditionBuilder.FormatTableAliasKey<TEntity>();
+            var n1 = field.GetPropertyName();
+            return builder.IsNotNull(builder.FormatFiled(t1, n1));
+        }
+
+        public static ConditionBuilder IsNotNullOrEmpty<TEntity>(this ConditionBuilder builder, Expression<Func<TEntity, object>> field)
+        {
+            var t1 = ConditionBuilder.FormatTableAliasKey<TEntity>();
+            var n1 = field.GetPropertyName();
+            return builder.IsNotNullOrEmpty(builder.FormatFiled(t1, n1));
+        }
     }
 }
