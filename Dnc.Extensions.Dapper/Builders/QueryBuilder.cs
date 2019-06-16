@@ -12,6 +12,8 @@ namespace Dnc.Extensions.Dapper.Builders
         protected StringBuilder sb = new StringBuilder();
         protected StringBuilder sbField = new StringBuilder();
 
+        protected StringBuilder orderByField = new StringBuilder();
+
         protected int _page = 1;
         protected int _rows = 10;
 
@@ -136,6 +138,7 @@ namespace Dnc.Extensions.Dapper.Builders
         {
             if (sort is string s && !string.IsNullOrEmpty(s))
             {
+                orderByField.Append($"{s}");
                 sb.Append($" order by {s}");
             }
             
@@ -199,10 +202,16 @@ namespace Dnc.Extensions.Dapper.Builders
                 var name = item.GetPropertyName();
                 items.Add(FormatFiled(key, name) + (isDesc ? " desc" : ""));
             }
-            sb.Append(string.Join(",", items));
+            var str = string.Join(",", items);
+            if (!string.IsNullOrEmpty(orderByField.ToString()))
+            {
+                orderByField.Append(",");
+            }
+            orderByField.Append(str);
+            sb.Append(str);
         }
 
-        public (string sql, string pageSql, string countSql, Dictionary<string, object> param) Build()
+        public (string sql, string pageSql, string countSql, string orderBySql, Dictionary<string, object> param) Build()
         {
             //替换所以表别名
             var text = "select " + sbField.ToString() + sb.ToString();
@@ -215,7 +224,7 @@ namespace Dnc.Extensions.Dapper.Builders
 
             var pageSql = _dialect.FormatQueryPageSql(_page, _rows, text);
 
-            return (text, pageSql, textCount, param);
+            return (text, pageSql, textCount, orderByField.ToString(), param);
         }
     }
 }
